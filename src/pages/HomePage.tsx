@@ -78,7 +78,7 @@ export default function HomePage() {
             <h3 className="text-sm font-semibold">重点跟进商家</h3>
             <span className="text-xs text-muted-foreground">{filteredMerchants.length} 家</span>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {filteredMerchants.map((merchant, i) => (
               <motion.div key={merchant.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
                 <Card

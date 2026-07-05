@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   Sparkles, Brain, BarChart3, Phone, Users, Star, Check,
-  ChevronRight, Zap, Shield, Globe, TrendingUp,
+  ChevronRight, Zap, TrendingUp,
   MessageSquare, Target, Award, ArrowRight, Play, Bot,
 } from 'lucide-react';
 
@@ -127,7 +127,7 @@ function FloatingCard3D({ children, delay = 0 }: { children: React.ReactNode; de
 
 function TestimonialCard({ t }: { t: { name: string; role: string; avatar: string; rating: number; text: string; tags: string[] } }) {
   return (
-    <div className="flex-shrink-0 w-72 md:w-80">
+    <div className="flex-shrink-0 w-64 md:w-80">
       <Card className="rounded-2xl border-border shadow-sm h-full">
         <CardContent className="p-5 flex flex-col h-full">
           <StarRating rating={t.rating} />
@@ -476,10 +476,10 @@ export default function LandingPage() {
             加入 2,000+ 位美团运营人员，体验 AI 驱动的智能运营新范式。
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center mt-10">
-            <Button size="lg" className="rounded-xl px-10 h-13 text-base shadow-xl shadow-primary/25 gap-2 font-semibold" onClick={() => navigate('/login')}>
+            <Button size="lg" className="rounded-xl px-10 h-16 text-base shadow-xl shadow-primary/25 gap-2 font-semibold" onClick={() => navigate('/login')}>
               免费开始使用 <ArrowRight className="w-4 h-4" />
             </Button>
-            <Button size="lg" variant="outline" className="rounded-xl px-8 h-13 text-base gap-2" onClick={() => navigate('/')}>
+            <Button size="lg" variant="outline" className="rounded-xl px-8 h-16 text-base gap-2" onClick={() => navigate('/')}>
               进入工作台 <ChevronRight className="w-4 h-4" />
             </Button>
           </div>
@@ -514,15 +514,8 @@ export default function LandingPage() {
               </div>
             ))}
           </div>
-          <div className="border-t border-border pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="border-t border-border pt-6 text-center">
             <p className="text-xs text-muted-foreground">© 2026 美团阿波罗商家智能运营 AI 平台 · 保留所有权利</p>
-            <div className="flex items-center gap-2">
-              {[Shield, Globe, Zap].map((Icon, i) => (
-                <div key={i} className="w-7 h-7 rounded-lg border border-border flex items-center justify-center hover:bg-muted transition-colors cursor-pointer">
-                  <Icon className="w-3.5 h-3.5 text-muted-foreground" />
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       </footer>

@@ -9,11 +9,14 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Phone, MessageSquare, Users, Mail, Plus, Search, Clock,
   CheckCircle2, XCircle, RefreshCw, TrendingUp, AlertCircle, BarChart3,
   Bold, Italic, List, ListOrdered, Heading2, Link2, Minus as HrIcon,
   Pencil, Trash2, AlignLeft, Quote,
+  Mic, ImageIcon, Paperclip, SendHorizonal, ChevronRight, Sparkles,
+  BookOpen, MapPin, Utensils, Store, BarChart2, Zap,
 } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { toast } from 'sonner';
@@ -182,6 +185,250 @@ function RichEditor({ value, onChange, placeholder }: RichEditorProps) {
 // 主页面
 // ──────────────────────────────────────────────
 const EMPTY_FORM = { merchant: '', channel: 'phone', content: '', result: 'connected', duration: '' };
+
+// ──────────────────────────────────────────────
+// 袋鼠参谋 AI 智能助手
+// ──────────────────────────────────────────────
+interface ChatMessage { id: string; role: 'user' | 'assistant'; text: string; type?: 'trend' | 'normal'; }
+
+const QUICK_QUESTIONS = [
+  { icon: TrendingUp,  text: '东北菜的市场热度还能持续上升吗？' },
+  { icon: BarChart2,   text: '川菜在餐饮市场中的份额能否进一步扩大？' },
+  { icon: Utensils,    text: '淮扬菜在未来几年有没有增长潜力？' },
+  { icon: MapPin,      text: '在朝阳区开一家火锅店，选址建议是什么？' },
+  { icon: Store,       text: '我店评分4.6，如何快速提升到4.8以上？' },
+  { icon: BookOpen,    text: '夏季外卖菜品研发方向有哪些热门趋势？' },
+];
+
+const TREND_CARD = {
+  title: '行业趋势',
+  highlight: '行业趋势',
+  content: '近期全国范围内的热搜菜品及食材中，"减脂餐"、"鲜虾牛油果沙拉"、"薄荷奶绿"搜索热度飙升，进入7月，小龙虾、冷面、各类甜品迎来应季，建议重点关注"烤梨/梨汤"、"石榴果茶"、"十三香小龙虾"相关菜品。',
+};
+
+const MOCK_ANSWERS: Record<string, string> = {
+  '东北菜': '根据近3个月搜索数据，东北菜整体热度指数同比上升18%，尤其锅包肉、酸菜白肉相关词条搜索量增长显著。但竞争也在加剧，头部品牌占据约42%市场份额。建议差异化定位，主打家常口味+性价比，客单价控制在55-75元区间，配合外卖曝光套餐效果最佳。',
+  '川菜': '川菜目前仍是外卖第一大品类，市场份额约28%，但增速放缓至每年3.2%。增量主要来自下沉市场与夜经济场景。建议针对午市（11:00-13:00）和夜宵（21:00-23:00）分别设计菜单，可有效提升全天营业额15-20%。',
+  '淮扬菜': '淮扬菜近年来随着精致餐饮趋势走强，客单价和品牌溢价空间持续提升。预测未来3年复合增长率约9.5%，尤其在一、二线城市商务宴请场景潜力巨大。建议提升摆盘精致度，配合美团图文直播展示烹饪工艺，可显著提升新客转化。',
+  '朝阳区': '朝阳区CBD片区（国贸/三里屯/望京）火锅密度较高，竞争激烈；推荐选址朝青板块（百子湾/双井）或太阳宫板块，这两个区域外卖需求旺盛但优质火锅供给不足。建议选择100-200㎡临街旺铺，覆盖半径控制在1.5km内，配合堂食+外卖双轮驱动。',
+  '评分': '从4.6提升到4.8的核心路径：①差评管理：分析近30条差评，63%集中在配送时效，建议优化备餐时间至12分钟内；②好评引导：在小票或包装上印"扫码评价送优惠券"，可提升好评率约25%；③菜品质量：重点优化TOP3销售菜品的口味一致性。预计执行45天后评分可达4.8。',
+  '夏季': '7-8月外卖热门趋势：①冷饮茶饮类（增长67%）：冷萃咖啡、鲜榨果茶、氮气冰淇淋；②轻食减脂类（增长43%）：沙拉、魔芋面、低卡套餐；③消暑主食（增长31%）：冷面、冰粉、各类凉拌。建议增加夏季限定套餐，标注"消暑/减脂"等标签，可提升曝光权重约40%。',
+};
+
+function KangarooAdvisor() {
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [inputText, setInputText] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const scrollToBottom = () => {
+    setTimeout(() => {
+      if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }, 100);
+  };
+
+  const sendMessage = useCallback((text: string) => {
+    if (!text.trim()) return;
+    const userMsg: ChatMessage = { id: `u-${Date.now()}`, role: 'user', text };
+    setMessages(prev => [...prev, userMsg]);
+    setInputText('');
+    setIsTyping(true);
+    scrollToBottom();
+
+    setTimeout(() => {
+      const matchKey = Object.keys(MOCK_ANSWERS).find(k => text.includes(k));
+      const replyText = matchKey ? MOCK_ANSWERS[matchKey] : `感谢您的提问！关于"${text}"，袋鼠参谋正在为您分析最新行业数据，结合美团平台实时数据与AI模型，为您提供专属经营建议。建议您可以从市场需求、竞争格局和门店运营三个维度综合考量，如需详细报告可点击下方「数据报告」获取完整分析。`;
+      const assistantMsg: ChatMessage = { id: `a-${Date.now()}`, role: 'assistant', text: replyText };
+      setMessages(prev => [...prev, assistantMsg]);
+      setIsTyping(false);
+      scrollToBottom();
+    }, 1200);
+  }, []);
+
+  const showWelcome = messages.length === 0;
+
+  return (
+    <div className="flex flex-col h-full min-h-0" style={{ height: 'calc(100vh - 180px)', minHeight: 520 }}>
+      {/* 滚动内容区 */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto min-h-0 px-4 pb-2">
+        {showWelcome ? (
+          <div className="pt-4 space-y-4">
+            {/* 欢迎头部 */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+              className="relative bg-gradient-to-br from-[#e8f4fd] to-[#f0f8ff] rounded-2xl p-5 overflow-hidden"
+            >
+              <div className="pr-20">
+                <p className="text-base md:text-lg font-black text-foreground leading-snug">
+                  "老板，你好！我可以为您
+                  <br />解答餐饮行业全方位问题。"
+                </p>
+              </div>
+              {/* 袋鼠吉祥物 SVG */}
+              <div className="absolute right-2 bottom-0 w-20 h-20 pointer-events-none">
+                <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+                  {/* 身体 */}
+                  <ellipse cx="40" cy="52" rx="18" ry="22" fill="#F5C842"/>
+                  {/* 头 */}
+                  <ellipse cx="40" cy="28" rx="14" ry="13" fill="#F5C842"/>
+                  {/* 耳朵 */}
+                  <ellipse cx="28" cy="16" rx="5" ry="8" fill="#F5C842" transform="rotate(-20 28 16)"/>
+                  <ellipse cx="52" cy="14" rx="5" ry="8" fill="#F5C842" transform="rotate(20 52 14)"/>
+                  <ellipse cx="29" cy="17" rx="2.5" ry="5" fill="#E8A0A0" transform="rotate(-20 29 17)"/>
+                  <ellipse cx="51" cy="15" rx="2.5" ry="5" fill="#E8A0A0" transform="rotate(20 51 15)"/>
+                  {/* 帽子 */}
+                  <rect x="28" y="14" width="24" height="4" rx="2" fill="#555"/>
+                  <rect x="30" y="6" width="20" height="10" rx="3" fill="#444"/>
+                  {/* 眼睛 */}
+                  <circle cx="35" cy="28" r="3.5" fill="#1a1a2e"/>
+                  <circle cx="45" cy="28" r="3.5" fill="#1a1a2e"/>
+                  <circle cx="36.5" cy="26.5" r="1" fill="white"/>
+                  <circle cx="46.5" cy="26.5" r="1" fill="white"/>
+                  {/* 嘴 */}
+                  <path d="M36 33 Q40 37 44 33" stroke="#c0392b" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+                  {/* 鼻子 */}
+                  <ellipse cx="40" cy="32" rx="2" ry="1.5" fill="#e8a0a0"/>
+                  {/* 翅膀 */}
+                  <ellipse cx="22" cy="58" rx="5" ry="9" fill="#b8d4f0" transform="rotate(20 22 58)"/>
+                  <ellipse cx="58" cy="56" rx="5" ry="9" fill="#b8d4f0" transform="rotate(-20 58 56)"/>
+                  {/* 腿 */}
+                  <rect x="33" y="70" width="6" height="8" rx="3" fill="#d4a017"/>
+                  <rect x="41" y="70" width="6" height="8" rx="3" fill="#d4a017"/>
+                </svg>
+              </div>
+            </motion.div>
+
+            {/* 行业趋势卡片 */}
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+              <Card className="rounded-xl border-border shadow-sm">
+                <CardContent className="p-4 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-primary shrink-0" />
+                    <span className="font-black text-base">
+                      <span className="relative">
+                        {TREND_CARD.highlight}
+                        <span className="absolute bottom-0 left-0 w-full h-2 bg-yellow-300/60 -z-10 rounded" />
+                      </span>
+                    </span>
+                  </div>
+                  <p className="text-sm text-foreground/80 leading-relaxed">{TREND_CARD.content}</p>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* 快捷问题列表 */}
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="space-y-2">
+              {QUICK_QUESTIONS.slice(0, 4).map((q, i) => (
+                <motion.button
+                  key={i}
+                  initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 + i * 0.07 }}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-muted/50 hover:bg-primary/5 hover:border-primary/20 border border-transparent transition-colors text-left group"
+                  onClick={() => sendMessage(q.text)}
+                >
+                  <q.icon className="w-4 h-4 text-muted-foreground shrink-0 group-hover:text-primary transition-colors" />
+                  <span className="flex-1 text-sm text-foreground">{q.text}</span>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0 group-hover:text-primary transition-colors" />
+                </motion.button>
+              ))}
+            </motion.div>
+          </div>
+        ) : (
+          <div className="py-4 space-y-4">
+            <AnimatePresence>
+              {messages.map(msg => (
+                <motion.div
+                  key={msg.id}
+                  initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                  className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
+                >
+                  {msg.role === 'assistant' && (
+                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0">
+                      <Sparkles className="w-4 h-4 text-primary-foreground" />
+                    </div>
+                  )}
+                  <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                    msg.role === 'user'
+                      ? 'bg-primary text-primary-foreground rounded-tr-sm'
+                      : 'bg-muted text-foreground rounded-tl-sm'
+                  }`}>
+                    {msg.text}
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+            {isTyping && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-3">
+                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0">
+                  <Sparkles className="w-4 h-4 text-primary-foreground" />
+                </div>
+                <div className="bg-muted rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-1">
+                  {[0, 1, 2].map(i => (
+                    <motion.span key={i} className="w-1.5 h-1.5 rounded-full bg-muted-foreground"
+                      animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.15 }} />
+                  ))}
+                </div>
+              </motion.div>
+            )}
+            {/* 快捷问题（对话中） */}
+            {!isTyping && messages.length > 0 && messages.length < 6 && (
+              <div className="space-y-1.5 pt-1">
+                <p className="text-xs text-muted-foreground px-1">猜你还想问：</p>
+                {QUICK_QUESTIONS.slice(2, 5).map((q, i) => (
+                  <button key={i} className="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-muted/40 hover:bg-primary/5 border border-transparent hover:border-primary/20 transition-colors text-left"
+                    onClick={() => sendMessage(q.text)}>
+                    <span className="flex-1 text-xs text-foreground">{q.text}</span>
+                    <ChevronRight className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* 多模态输入框 */}
+      <div className="shrink-0 border-t border-border px-4 py-3 bg-background">
+        <div className="flex items-center gap-2 bg-muted/50 rounded-full border border-border px-3 py-2 focus-within:border-primary/40 transition-colors">
+          <input
+            ref={inputRef}
+            value={inputText}
+            onChange={e => setInputText(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(inputText); } }}
+            placeholder="有问题随时问我..."
+            className="flex-1 min-w-0 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+          />
+          <div className="flex items-center gap-1 shrink-0">
+            <button className="w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-background transition-colors" onClick={() => toast.info('语音输入即将上线')}>
+              <Mic className="w-4 h-4" />
+            </button>
+            <button className="w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-background transition-colors" onClick={() => toast.info('图片识别即将上线')}>
+              <ImageIcon className="w-4 h-4" />
+            </button>
+            <button className="w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-background transition-colors" onClick={() => toast.info('文件上传即将上线')}>
+              <Paperclip className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => sendMessage(inputText)}
+              disabled={!inputText.trim()}
+              className="w-8 h-8 rounded-full flex items-center justify-center bg-muted-foreground disabled:bg-muted text-background hover:opacity-90 transition-all ml-0.5"
+            >
+              <SendHorizonal className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 mt-2 px-1">
+          {[{ icon: Zap, label: 'AI营销诊断' }, { icon: BarChart2, label: '数据解读' }, { icon: MapPin, label: '选址建议' }, { icon: Utensils, label: '菜品研发' }].map(chip => (
+            <button key={chip.label} onClick={() => sendMessage(chip.label + '，请帮我分析')}
+              className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-primary transition-colors whitespace-nowrap">
+              <chip.icon className="w-3 h-3" />{chip.label}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function CommunicationPage() {
   const [records, setRecords] = useState<CommRecord[]>(() => genMockComms());
@@ -360,7 +607,7 @@ export default function CommunicationPage() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="rounded-sm mb-4">
+          <TabsList className="rounded-sm mb-4 flex-wrap h-auto gap-1">
             <TabsTrigger value="records"  className="rounded-sm text-xs"><Phone className="w-3.5 h-3.5 mr-1" />沟通记录</TabsTrigger>
             <TabsTrigger value="followup" className="rounded-sm text-xs">
               <AlertCircle className="w-3.5 h-3.5 mr-1" />待跟进
@@ -369,6 +616,9 @@ export default function CommunicationPage() {
               )}
             </TabsTrigger>
             <TabsTrigger value="stats"    className="rounded-sm text-xs"><BarChart3 className="w-3.5 h-3.5 mr-1" />本周趋势</TabsTrigger>
+            <TabsTrigger value="kangaroo" className="rounded-sm text-xs">
+              <Sparkles className="w-3.5 h-3.5 mr-1 text-primary" />袋鼠参谋
+            </TabsTrigger>
           </TabsList>
 
           {/* ── 沟通记录 ── */}
@@ -565,6 +815,11 @@ export default function CommunicationPage() {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          {/* ── 袋鼠参谋 ── */}
+          <TabsContent value="kangaroo" className="m-0 p-0">
+            <KangarooAdvisor />
           </TabsContent>
         </Tabs>
       </div>

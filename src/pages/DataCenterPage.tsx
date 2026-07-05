@@ -140,8 +140,8 @@ export default function DataCenterPage() {
 
           {/* 销售趋势 */}
           <TabsContent value="sales" className="space-y-4">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <Card className="rounded-sm border-border shadow-sm lg:col-span-2">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card className="rounded-sm border-border shadow-sm md:col-span-2">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-semibold">月度销售趋势</CardTitle>
                 </CardHeader>
@@ -194,7 +194,7 @@ export default function DataCenterPage() {
 
           {/* 转化漏斗 */}
           <TabsContent value="funnel">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card className="rounded-sm border-border shadow-sm">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-semibold">商机转化漏斗</CardTitle>
@@ -345,7 +345,7 @@ export default function DataCenterPage() {
 
           {/* 品类分布 */}
           <TabsContent value="category">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card className="rounded-sm border-border shadow-sm">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-semibold">品类营收占比</CardTitle>
@@ -389,7 +389,7 @@ export default function DataCenterPage() {
 
           {/* 雷达综合评估 */}
           <TabsContent value="radar">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card className="rounded-sm border-border shadow-sm">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-semibold">运营能力 vs 行业均值</CardTitle>

@@ -16,7 +16,7 @@ import {
   Bold, Italic, List, ListOrdered, Heading2, Link2, Minus as HrIcon,
   Pencil, Trash2, AlignLeft, Quote,
   Mic, ImageIcon, Paperclip, SendHorizonal, ChevronRight, Sparkles,
-  BookOpen, MapPin, Utensils, Store, BarChart2, Zap,
+  BookOpen, MapPin, Utensils, Store, BarChart2, Zap, X, FileText, Play, Pause, Square,
 } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { toast } from 'sonner';
@@ -189,7 +189,15 @@ const EMPTY_FORM = { merchant: '', channel: 'phone', content: '', result: 'conne
 // ──────────────────────────────────────────────
 // 袋鼠参谋 AI 智能助手
 // ──────────────────────────────────────────────
-interface ChatMessage { id: string; role: 'user' | 'assistant'; text: string; type?: 'trend' | 'normal'; }
+interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  text: string;
+  type?: 'trend' | 'normal' | 'image' | 'voice' | 'file';
+  mediaUrl?: string;
+  fileName?: string;
+  duration?: number;
+}
 
 const QUICK_QUESTIONS = [
   { icon: TrendingUp,  text: '东北菜的市场热度还能持续上升吗？' },
@@ -200,11 +208,6 @@ const QUICK_QUESTIONS = [
   { icon: BookOpen,    text: '夏季外卖菜品研发方向有哪些热门趋势？' },
 ];
 
-const TREND_CARD = {
-  title: '行业趋势',
-  highlight: '行业趋势',
-  content: '近期全国范围内的热搜菜品及食材中，"减脂餐"、"鲜虾牛油果沙拉"、"薄荷奶绿"搜索热度飙升，进入7月，小龙虾、冷面、各类甜品迎来应季，建议重点关注"烤梨/梨汤"、"石榴果茶"、"十三香小龙虾"相关菜品。',
-};
 
 const MOCK_ANSWERS: Record<string, string> = {
   '东北菜': '根据近3个月搜索数据，东北菜整体热度指数同比上升18%，尤其锅包肉、酸菜白肉相关词条搜索量增长显著。但竞争也在加剧，头部品牌占据约42%市场份额。建议差异化定位，主打家常口味+性价比，客单价控制在55-75元区间，配合外卖曝光套餐效果最佳。',
@@ -219,8 +222,18 @@ function KangarooAdvisor() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [pendingMedia, setPendingMedia] = useState<{ type: 'image' | 'file'; url: string; name: string } | null>(null);
+  const [playingVoiceId, setPlayingVoiceId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const recordingTimerRef = useRef<number | null>(null);
+  const audioRefMap = useRef<Record<string, HTMLAudioElement>>({});
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = () => {
     setTimeout(() => {
@@ -228,23 +241,101 @@ function KangarooAdvisor() {
     }, 100);
   };
 
-  const sendMessage = useCallback((text: string) => {
-    if (!text.trim()) return;
-    const userMsg: ChatMessage = { id: `u-${Date.now()}`, role: 'user', text };
+  const askAssistant = useCallback((text: string, mediaUrl?: string, mediaType?: ChatMessage['type'], fileName?: string) => {
+    const displayText = text || (mediaType === 'voice' ? '[语音消息]' : mediaType === 'image' ? '[图片]' : fileName || '[文件]');
+    const userMsg: ChatMessage = { id: `u-${Date.now()}`, role: 'user', text: displayText, type: mediaType, mediaUrl, fileName };
     setMessages(prev => [...prev, userMsg]);
     setInputText('');
+    setPendingMedia(null);
     setIsTyping(true);
     scrollToBottom();
 
     setTimeout(() => {
-      const matchKey = Object.keys(MOCK_ANSWERS).find(k => text.includes(k));
-      const replyText = matchKey ? MOCK_ANSWERS[matchKey] : `感谢您的提问！关于"${text}"，袋鼠参谋正在为您分析最新行业数据，结合美团平台实时数据与AI模型，为您提供专属经营建议。建议您可以从市场需求、竞争格局和门店运营三个维度综合考量，如需详细报告可点击下方「数据报告」获取完整分析。`;
+      const matchKey = Object.keys(MOCK_ANSWERS).find(k => displayText.includes(k));
+      const replyText = matchKey ? MOCK_ANSWERS[matchKey] : `感谢您的提问！关于"${displayText}"，袋鼠参谋正在为您分析最新行业数据，结合美团平台实时数据与AI模型，为您提供专属经营建议。建议您可以从市场需求、竞争格局和门店运营三个维度综合考量，如需详细报告可点击下方「数据报告」获取完整分析。`;
       const assistantMsg: ChatMessage = { id: `a-${Date.now()}`, role: 'assistant', text: replyText };
       setMessages(prev => [...prev, assistantMsg]);
       setIsTyping(false);
       scrollToBottom();
     }, 1200);
   }, []);
+
+  const sendMessage = useCallback((text: string) => {
+    const trimmed = text.trim();
+    if (!trimmed && !pendingMedia) return;
+    askAssistant(trimmed, pendingMedia?.url, pendingMedia?.type, pendingMedia?.name);
+  }, [pendingMedia, askAssistant]);
+
+  /* ── 语音录制 ── */
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/ogg';
+      const recorder = new MediaRecorder(stream, { mimeType });
+      mediaRecorderRef.current = recorder;
+      audioChunksRef.current = [];
+      recorder.ondataavailable = e => { if (e.data.size > 0) audioChunksRef.current.push(e.data); };
+      recorder.onstop = () => {
+        const blob = new Blob(audioChunksRef.current, { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        askAssistant('[语音消息]', url, 'voice');
+        stream.getTracks().forEach(t => t.stop());
+      };
+      recorder.start();
+      setIsRecording(true);
+      setRecordingTime(0);
+      recordingTimerRef.current = window.setInterval(() => setRecordingTime(t => t + 1), 1000);
+    } catch {
+      toast.error('无法访问麦克风，请检查权限设置');
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+    }
+    if (recordingTimerRef.current) {
+      clearInterval(recordingTimerRef.current);
+      recordingTimerRef.current = null;
+    }
+    setIsRecording(false);
+  };
+
+  /* ── 图片 / 附件上传 ── */
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { toast.error('请选择图片文件'); e.target.value = ''; return; }
+    const url = URL.createObjectURL(file);
+    setPendingMedia({ type: 'image', url, name: file.name });
+    e.target.value = '';
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    setPendingMedia({ type: 'file', url, name: file.name });
+    e.target.value = '';
+  };
+
+  const formatRecordTime = (s: number) => `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
+
+  const toggleVoicePlay = (msgId: string, url?: string) => {
+    if (!url) return;
+    const audio = audioRefMap.current[msgId] || new Audio(url);
+    audioRefMap.current[msgId] = audio;
+    if (playingVoiceId === msgId) {
+      audio.pause();
+      setPlayingVoiceId(null);
+    } else {
+      if (playingVoiceId && audioRefMap.current[playingVoiceId]) {
+        audioRefMap.current[playingVoiceId].pause();
+      }
+      audio.play().then(() => setPlayingVoiceId(msgId)).catch(() => toast.error('语音播放失败'));
+      audio.onended = () => setPlayingVoiceId(null);
+    }
+  };
 
   const showWelcome = messages.length === 0;
 
@@ -257,7 +348,7 @@ function KangarooAdvisor() {
             {/* 欢迎头部 */}
             <motion.div
               initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-              className="relative bg-gradient-to-br from-[#e8f4fd] to-[#f0f8ff] rounded-2xl p-5 overflow-hidden"
+              className="relative bg-gradient-to-br from-primary/10 to-accent/10 rounded-2xl p-5 overflow-hidden border border-primary/10"
             >
               <div className="pr-20">
                 <p className="text-base md:text-lg font-black text-foreground leading-snug">
@@ -268,61 +359,34 @@ function KangarooAdvisor() {
               {/* 袋鼠吉祥物 SVG */}
               <div className="absolute right-2 bottom-0 w-20 h-20 pointer-events-none">
                 <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-                  {/* 身体 */}
                   <ellipse cx="40" cy="52" rx="18" ry="22" fill="#F5C842"/>
-                  {/* 头 */}
                   <ellipse cx="40" cy="28" rx="14" ry="13" fill="#F5C842"/>
-                  {/* 耳朵 */}
                   <ellipse cx="28" cy="16" rx="5" ry="8" fill="#F5C842" transform="rotate(-20 28 16)"/>
                   <ellipse cx="52" cy="14" rx="5" ry="8" fill="#F5C842" transform="rotate(20 52 14)"/>
                   <ellipse cx="29" cy="17" rx="2.5" ry="5" fill="#E8A0A0" transform="rotate(-20 29 17)"/>
                   <ellipse cx="51" cy="15" rx="2.5" ry="5" fill="#E8A0A0" transform="rotate(20 51 15)"/>
-                  {/* 帽子 */}
                   <rect x="28" y="14" width="24" height="4" rx="2" fill="#555"/>
                   <rect x="30" y="6" width="20" height="10" rx="3" fill="#444"/>
-                  {/* 眼睛 */}
                   <circle cx="35" cy="28" r="3.5" fill="#1a1a2e"/>
                   <circle cx="45" cy="28" r="3.5" fill="#1a1a2e"/>
                   <circle cx="36.5" cy="26.5" r="1" fill="white"/>
                   <circle cx="46.5" cy="26.5" r="1" fill="white"/>
-                  {/* 嘴 */}
                   <path d="M36 33 Q40 37 44 33" stroke="#c0392b" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
-                  {/* 鼻子 */}
                   <ellipse cx="40" cy="32" rx="2" ry="1.5" fill="#e8a0a0"/>
-                  {/* 翅膀 */}
                   <ellipse cx="22" cy="58" rx="5" ry="9" fill="#b8d4f0" transform="rotate(20 22 58)"/>
                   <ellipse cx="58" cy="56" rx="5" ry="9" fill="#b8d4f0" transform="rotate(-20 58 56)"/>
-                  {/* 腿 */}
                   <rect x="33" y="70" width="6" height="8" rx="3" fill="#d4a017"/>
                   <rect x="41" y="70" width="6" height="8" rx="3" fill="#d4a017"/>
                 </svg>
               </div>
             </motion.div>
 
-            {/* 行业趋势卡片 */}
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
-              <Card className="rounded-xl border-border shadow-sm">
-                <CardContent className="p-4 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4 text-primary shrink-0" />
-                    <span className="font-black text-base">
-                      <span className="relative">
-                        {TREND_CARD.highlight}
-                        <span className="absolute bottom-0 left-0 w-full h-2 bg-yellow-300/60 -z-10 rounded" />
-                      </span>
-                    </span>
-                  </div>
-                  <p className="text-sm text-foreground/80 leading-relaxed">{TREND_CARD.content}</p>
-                </CardContent>
-              </Card>
-            </motion.div>
-
             {/* 快捷问题列表 */}
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="space-y-2">
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="space-y-2">
               {QUICK_QUESTIONS.slice(0, 4).map((q, i) => (
                 <motion.button
                   key={i}
-                  initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 + i * 0.07 }}
+                  initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 + i * 0.07 }}
                   className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-muted/50 hover:bg-primary/5 hover:border-primary/20 border border-transparent transition-colors text-left group"
                   onClick={() => sendMessage(q.text)}
                 >
@@ -347,12 +411,28 @@ function KangarooAdvisor() {
                       <Sparkles className="w-4 h-4 text-primary-foreground" />
                     </div>
                   )}
-                  <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                  <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed overflow-hidden ${
                     msg.role === 'user'
                       ? 'bg-primary text-primary-foreground rounded-tr-sm'
                       : 'bg-muted text-foreground rounded-tl-sm'
                   }`}>
-                    {msg.text}
+                    {msg.type === 'image' && msg.mediaUrl ? (
+                      <img src={msg.mediaUrl} alt="用户图片" className="rounded-lg max-w-[200px] max-h-[200px] w-full h-auto object-cover" />
+                    ) : msg.type === 'voice' && msg.mediaUrl ? (
+                      <button
+                        onClick={() => toggleVoicePlay(msg.id, msg.mediaUrl)}
+                        className="flex items-center gap-2 px-2 py-1 rounded-full bg-primary-foreground/10 hover:bg-primary-foreground/20 transition-colors"
+                      >
+                        {playingVoiceId === msg.id ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                        <span className="text-xs">{playingVoiceId === msg.id ? '播放中' : '点击播放'}</span>
+                      </button>
+                    ) : msg.type === 'file' && msg.mediaUrl ? (
+                      <a href={msg.mediaUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 underline break-words">
+                        <FileText className="w-4 h-4 shrink-0" /> {msg.fileName || '附件文件'}
+                      </a>
+                    ) : (
+                      msg.text
+                    )}
                   </div>
                 </motion.div>
               ))}
@@ -387,8 +467,66 @@ function KangarooAdvisor() {
         )}
       </div>
 
-      {/* 多模态输入框 */}
-      <div className="shrink-0 border-t border-border px-4 py-3 bg-background">
+      {/* 多模态输入区 */}
+      <div className="shrink-0 border-t border-border px-4 py-3 bg-background space-y-2">
+        {/* 语音 / 图片 / 附件 工具栏 */}
+        {isRecording ? (
+          <div className="flex items-center gap-3 rounded-full px-4 py-2 bg-destructive/10 text-destructive text-sm">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-destructive" />
+            </span>
+            <span>正在录音 {formatRecordTime(recordingTime)}</span>
+            <button onClick={stopRecording} className="ml-auto flex items-center gap-1 text-xs bg-destructive text-destructive-foreground px-2.5 py-1 rounded-full hover:opacity-90 transition-opacity">
+              <Square className="w-3 h-3" />停止
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={startRecording}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-muted-foreground bg-muted/50 hover:bg-primary/10 hover:text-primary transition-colors"
+            >
+              <Mic className="w-3.5 h-3.5" />
+              语音
+            </button>
+            <button
+              onClick={() => imageInputRef.current?.click()}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-muted-foreground bg-muted/50 hover:bg-primary/10 hover:text-primary transition-colors"
+            >
+              <ImageIcon className="w-3.5 h-3.5" />
+              图片
+            </button>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-muted-foreground bg-muted/50 hover:bg-primary/10 hover:text-primary transition-colors"
+            >
+              <Paperclip className="w-3.5 h-3.5" />
+              附件
+            </button>
+            <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
+            <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileSelect} />
+          </div>
+        )}
+
+        {/* 待发送附件预览 */}
+        {pendingMedia && (
+          <div className="flex items-center gap-2 p-2 rounded-xl bg-muted/40 border border-border">
+            {pendingMedia.type === 'image' ? (
+              <img src={pendingMedia.url} alt="待发送" className="h-12 w-12 rounded-lg object-cover border border-border" />
+            ) : (
+              <div className="flex items-center gap-2 text-xs text-foreground">
+                <FileText className="w-4 h-4 text-primary shrink-0" />
+                <span className="max-w-[180px] truncate">{pendingMedia.name}</span>
+              </div>
+            )}
+            <button onClick={() => setPendingMedia(null)} className="ml-auto p-1 rounded-full hover:bg-muted text-muted-foreground">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
+
+        {/* 输入框 */}
         <div className="flex items-center gap-2 bg-muted/50 rounded-full border border-border px-3 py-2 focus-within:border-primary/40 transition-colors">
           <input
             ref={inputRef}
@@ -398,26 +536,17 @@ function KangarooAdvisor() {
             placeholder="有问题随时问我..."
             className="flex-1 min-w-0 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
           />
-          <div className="flex items-center gap-1 shrink-0">
-            <button className="w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-background transition-colors" onClick={() => toast.info('语音输入即将上线')}>
-              <Mic className="w-4 h-4" />
-            </button>
-            <button className="w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-background transition-colors" onClick={() => toast.info('图片识别即将上线')}>
-              <ImageIcon className="w-4 h-4" />
-            </button>
-            <button className="w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-background transition-colors" onClick={() => toast.info('文件上传即将上线')}>
-              <Paperclip className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => sendMessage(inputText)}
-              disabled={!inputText.trim()}
-              className="w-8 h-8 rounded-full flex items-center justify-center bg-muted-foreground disabled:bg-muted text-background hover:opacity-90 transition-all ml-0.5"
-            >
-              <SendHorizonal className="w-4 h-4" />
-            </button>
-          </div>
+          <button
+            onClick={() => sendMessage(inputText)}
+            disabled={!inputText.trim() && !pendingMedia}
+            className="w-8 h-8 rounded-full flex items-center justify-center bg-primary disabled:bg-muted text-primary-foreground hover:opacity-90 transition-all ml-0.5"
+          >
+            <SendHorizonal className="w-4 h-4" />
+          </button>
         </div>
-        <div className="flex items-center gap-3 mt-2 px-1">
+
+        {/* 底部功能标签 */}
+        <div className="flex items-center gap-3 px-1 overflow-x-auto whitespace-nowrap">
           {[{ icon: Zap, label: 'AI营销诊断' }, { icon: BarChart2, label: '数据解读' }, { icon: MapPin, label: '选址建议' }, { icon: Utensils, label: '菜品研发' }].map(chip => (
             <button key={chip.label} onClick={() => sendMessage(chip.label + '，请帮我分析')}
               className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-primary transition-colors whitespace-nowrap">
@@ -608,6 +737,9 @@ export default function CommunicationPage() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="rounded-sm mb-4 flex-wrap h-auto gap-1">
+            <TabsTrigger value="kangaroo" className="rounded-sm text-xs">
+              <Sparkles className="w-3.5 h-3.5 mr-1 text-primary" />袋鼠参谋
+            </TabsTrigger>
             <TabsTrigger value="records"  className="rounded-sm text-xs"><Phone className="w-3.5 h-3.5 mr-1" />沟通记录</TabsTrigger>
             <TabsTrigger value="followup" className="rounded-sm text-xs">
               <AlertCircle className="w-3.5 h-3.5 mr-1" />待跟进
@@ -616,9 +748,6 @@ export default function CommunicationPage() {
               )}
             </TabsTrigger>
             <TabsTrigger value="stats"    className="rounded-sm text-xs"><BarChart3 className="w-3.5 h-3.5 mr-1" />本周趋势</TabsTrigger>
-            <TabsTrigger value="kangaroo" className="rounded-sm text-xs">
-              <Sparkles className="w-3.5 h-3.5 mr-1 text-primary" />袋鼠参谋
-            </TabsTrigger>
           </TabsList>
 
           {/* ── 沟通记录 ── */}

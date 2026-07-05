@@ -17,89 +17,99 @@ All colors MUST be HSL.
 @layer base {
   :root {
     --radius: 0.25rem;
-    --background: 0 0% 98%;
+    --background: 42 100% 98%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 24 100% 40%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 24 20% 96%;
-    --secondary-foreground: 24 30% 20%;
-    --muted: 24 20% 95%;
+    /* 美团优选主题色：黄金 + 活力红 */
+    --primary: 45 100% 52%;
+    --primary-foreground: 220 40% 10%;
+    --secondary: 42 30% 95%;
+    --secondary-foreground: 220 40% 15%;
+    --muted: 40 20% 94%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 37.7 92.1% 50.2%;
-    --accent-foreground: 222.2 84% 4.9%;
+    --accent: 12 90% 55%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
-    --border: 24 15% 90%;
-    --input: 24 15% 90%;
-    --ring: 24 100% 40%;
-    --chart-1: 24 100% 40%;
-    --chart-2: 37.7 92.1% 50.2%;
+    --border: 40 20% 88%;
+    --input: 40 20% 88%;
+    --ring: 45 100% 52%;
+    --chart-1: 45 100% 52%;
+    --chart-2: 12 90% 55%;
     --chart-3: 142.1 76.2% 36.3%;
     --chart-4: 0 84.2% 60.2%;
     --chart-5: 262.1 83.3% 58%;
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 222.2 84% 4.9%;
-    --sidebar-primary: 24 100% 40%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 24 20% 96%;
-    --sidebar-accent-foreground: 24 30% 20%;
-    --sidebar-border: 24 15% 90%;
-    --sidebar-ring: 24 100% 40%;
+    --sidebar-primary: 45 100% 52%;
+    --sidebar-primary-foreground: 220 40% 10%;
+    --sidebar-accent: 42 30% 95%;
+    --sidebar-accent-foreground: 220 40% 15%;
+    --sidebar-border: 40 20% 88%;
+    --sidebar-ring: 45 100% 52%;
     --destructive-foreground: 0 0% 100%;
     --success: 142.1 76.2% 36.3%;
     --success-foreground: 0 0% 100%;
     --warning: 37.7 92.1% 50.2%;
     --warning-foreground: 222.2 84% 4.9%;
-    --info: 24 100% 40%;
+    --info: 24 100% 55%;
     --info-foreground: 0 0% 100%;
     --danger: 0 84.2% 60.2%;
     --danger-foreground: 0 0% 100%;
+    --meituan-gradient: linear-gradient(135deg, hsl(45 100% 55%), hsl(24 100% 55%));
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    --background: 222.2 84% 6%;
     --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
+    --card: 222.2 84% 8%;
     --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
+    --popover: 222.2 84% 8%;
     --popover-foreground: 210 40% 98%;
-    --primary: 24 100% 50%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 45 100% 55%;
+    --primary-foreground: 220 40% 8%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 37.7 92.1% 50.2%;
-    --accent-foreground: 222.2 84% 4.9%;
+    --accent: 12 90% 58%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 62.8% 30.6%;
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 24 100% 50%;
-    --chart-1: 24 100% 50%;
-    --chart-2: 37.7 92.1% 50.2%;
+    --ring: 45 100% 55%;
+    --chart-1: 45 100% 55%;
+    --chart-2: 12 90% 58%;
     --chart-3: 142.1 70.6% 45.3%;
     --chart-4: 0 62.8% 30.6%;
     --chart-5: 270 60% 52%;
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 24 100% 50%;
-    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-primary: 45 100% 55%;
+    --sidebar-primary-foreground: 220 40% 8%;
     --sidebar-accent: 240 3.7% 15.9%;
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 24 100% 50%;
+    --sidebar-ring: 45 100% 55%;
     --destructive-foreground: 210 40% 98%;
     --success: 142.1 70.6% 45.3%;
     --success-foreground: 0 0% 100%;
     --warning: 37.7 92.1% 50.2%;
     --warning-foreground: 222.2 84% 4.9%;
-    --info: 24 100% 50%;
+    --info: 24 100% 58%;
     --info-foreground: 0 0% 100%;
     --danger: 0 62.8% 30.6%;
     --danger-foreground: 0 0% 100%;
+    --meituan-gradient: linear-gradient(135deg, hsl(45 100% 55%), hsl(24 100% 55%));
+  }
+
+  .bg-meituan-gradient { background-image: var(--meituan-gradient); }
+  .text-meituan-gradient {
+    background-image: var(--meituan-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
 }
 

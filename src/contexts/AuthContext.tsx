@@ -27,6 +27,7 @@ interface AuthContextType {
   signUpWithUsername: (username: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
+  updateProfile: (updates: Partial<Profile>) => Promise<{ error: Error | null }>;
 }
 
 const defaultAuthContext: AuthContextType = {
@@ -37,6 +38,7 @@ const defaultAuthContext: AuthContextType = {
   signUpWithUsername: async () => ({ error: new Error('AuthProvider not mounted') }),
   signOut: async () => {},
   refreshProfile: async () => {},
+  updateProfile: async () => ({ error: new Error('AuthProvider not mounted') }),
 };
 
 const AuthContext = createContext<AuthContextType>(defaultAuthContext);
@@ -125,8 +127,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setProfile(null);
   };
 
+  const updateProfile = async (updates: Partial<Profile>) => {
+    if (!user) return { error: new Error('用户未登录') };
+    setProfile(prev => (prev ? { ...prev, ...updates } : null));
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', user.id)
+        .select()
+        .single();
+      if (error) throw error;
+      setProfile(prev => (prev ? { ...prev, ...data } : data));
+      return { error: null };
+    } catch (error) {
+      return { error: error as Error };
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signInWithUsername, signUpWithUsername, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ user, profile, loading, signInWithUsername, signUpWithUsername, signOut, refreshProfile, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );

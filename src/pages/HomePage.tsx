@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Search, TrendingUp, TrendingDown, Filter, ChevronRight } from 'lucide-react';
+import { Search, TrendingUp, TrendingDown, Filter, ChevronRight, Phone, FileCheck, MessageSquare, Users } from 'lucide-react';
 import { getMockMerchantList } from '@/services/mockData';
 import type { MerchantListItem } from '@/types/merchant';
 
@@ -34,26 +34,34 @@ export default function HomePage() {
         {/* KPI 概览 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           {[
-            { label: '今日跟进商家', value: '23', change: '+12%', up: true },
-            { label: '本月签约数', value: '8', change: '+33%', up: true },
-            { label: '待处理沟通', value: '15', change: '-5%', up: false },
-            { label: '高潜商家池', value: '128', change: '+8%', up: true },
-          ].map((item, i) => (
-            <motion.div key={item.label} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}>
-              <Card className="rounded-sm border-border shadow-sm">
-                <CardContent className="p-3 md:p-4">
-                  <p className="text-[10px] md:text-xs text-muted-foreground">{item.label}</p>
-                  <div className="flex items-end justify-between mt-1">
-                    <p className="text-xl md:text-2xl font-bold tracking-tight">{item.value}</p>
-                    <span className={`text-[10px] md:text-xs flex items-center gap-0.5 ${item.up ? 'text-success' : 'text-destructive'}`}>
-                      {item.up ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                      {item.change}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
+            { label: '今日跟进商家', value: '23', change: '+12%', up: true, icon: Phone, color: 'primary', bg: 'from-primary/10 to-primary/5' },
+            { label: '本月签约数', value: '8', change: '+33%', up: true, icon: FileCheck, color: 'accent', bg: 'from-accent/10 to-accent/5' },
+            { label: '待处理沟通', value: '15', change: '-5%', up: false, icon: MessageSquare, color: 'info', bg: 'from-info/10 to-info/5' },
+            { label: '高潜商家池', value: '128', change: '+8%', up: true, icon: Users, color: 'success', bg: 'from-success/10 to-success/5' },
+          ].map((item, i) => {
+            const Icon = item.icon;
+            const colorClass = item.color === 'primary' ? 'text-primary bg-primary/15' : item.color === 'accent' ? 'text-accent bg-accent/15' : item.color === 'info' ? 'text-info bg-info/15' : 'text-success bg-success/15';
+            const borderClass = item.color === 'primary' ? 'border-t-primary' : item.color === 'accent' ? 'border-t-accent' : item.color === 'info' ? 'border-t-info' : 'border-t-success';
+            return (
+              <motion.div key={item.label} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}>
+                <Card className={`rounded-xl border-border shadow-sm border-t-4 ${borderClass} bg-gradient-to-br ${item.bg} overflow-hidden hover:shadow-md transition-shadow`}>
+                  <CardContent className="p-3 md:p-4">
+                    <div className="flex items-start justify-between">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${colorClass}`}>
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <span className={`text-[10px] md:text-xs flex items-center gap-0.5 px-1.5 py-0.5 rounded-full ${item.up ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'}`}>
+                        {item.up ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                        {item.change}
+                      </span>
+                    </div>
+                    <p className="text-2xl md:text-3xl font-black tracking-tight mt-2">{item.value}</p>
+                    <p className="text-[10px] md:text-xs text-muted-foreground mt-0.5">{item.label}</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            );
+          })}
         </div>
 
         {/* 搜索与操作 */}

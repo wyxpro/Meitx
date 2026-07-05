@@ -24,11 +24,18 @@ const BUILTIN_AVATARS = [
   { id: 'a5', url: 'https://miaoda-site-img.cdn.bcebos.com/images/baidu_image_search_f688d7eb-524f-40a9-8763-b0206a7af199.jpg', label: '时尚潮流' },
 ];
 
+const DEFAULT_AVATAR_URL = BUILTIN_AVATARS[1].url; // 活泼元气
+
 export default function SettingsPage() {
-  const { profile } = useAuth();
+  const { profile, updateProfile } = useAuth();
   const [saved, setSaved] = useState(false);
-  const [selectedAvatar, setSelectedAvatar] = useState<string>('');
-  const [uploadedAvatar, setUploadedAvatar] = useState<string>('');
+  const isBuiltinAvatar = (url?: string | null) => BUILTIN_AVATARS.some(a => a.url === url);
+  const [selectedAvatar, setSelectedAvatar] = useState<string>(
+    isBuiltinAvatar(profile?.avatar_url) ? profile?.avatar_url || DEFAULT_AVATAR_URL : DEFAULT_AVATAR_URL
+  );
+  const [uploadedAvatar, setUploadedAvatar] = useState<string>(
+    profile?.avatar_url && !isBuiltinAvatar(profile.avatar_url) ? profile.avatar_url : ''
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [notifications, setNotifications] = useState({
     email: true, sms: false, push: true, dailyReport: true, weeklyDigest: false,
@@ -55,7 +62,17 @@ export default function SettingsPage() {
     e.target.value = '';
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    const { error } = await updateProfile({
+      display_name: profileForm.display_name,
+      department: profileForm.department,
+      region: profileForm.region,
+      avatar_url: currentAvatar || DEFAULT_AVATAR_URL,
+    });
+    if (error) {
+      toast.error('保存失败：' + error.message);
+      return;
+    }
     setSaved(true);
     toast.success('设置已保存');
     setTimeout(() => setSaved(false), 2000);

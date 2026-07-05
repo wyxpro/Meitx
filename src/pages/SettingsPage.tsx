@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,16 +8,28 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { User, Bell, Shield, Palette, Globe, Save, Upload, Check } from 'lucide-react';
+import { User, Bell, Shield, Palette, Save, Upload, Check, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+
+// 内置5种女生头像（插画风格）
+const BUILTIN_AVATARS = [
+  { id: 'a1', url: 'https://miaoda-site-img.cdn.bcebos.com/images/MiaoTu_1b74c70f-cdb9-4aa1-8982-85d7771bbe55.jpg', label: '清新可爱' },
+  { id: 'a2', url: 'https://miaoda-site-img.cdn.bcebos.com/images/MiaoTu_c986d189-0211-419e-88bd-cd5787fe6e9f.jpg', label: '活泼元气' },
+  { id: 'a3', url: 'https://miaoda-site-img.cdn.bcebos.com/images/MiaoTu_c5d0884c-449b-458b-a9f7-4658b2b3130b.jpg', label: '甜美温柔' },
+  { id: 'a4', url: 'https://miaoda-site-img.cdn.bcebos.com/images/baidu_image_search_700a5eaf-1422-4ef1-9067-00ec2cb3024f.jpg', label: '知性优雅' },
+  { id: 'a5', url: 'https://miaoda-site-img.cdn.bcebos.com/images/baidu_image_search_f688d7eb-524f-40a9-8763-b0206a7af199.jpg', label: '时尚潮流' },
+];
 
 export default function SettingsPage() {
   const { profile } = useAuth();
   const [saved, setSaved] = useState(false);
+  const [selectedAvatar, setSelectedAvatar] = useState<string>('');
+  const [uploadedAvatar, setUploadedAvatar] = useState<string>('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [notifications, setNotifications] = useState({
     email: true, sms: false, push: true, dailyReport: true, weeklyDigest: false,
   });
@@ -26,6 +38,22 @@ export default function SettingsPage() {
     department: profile?.department || '',
     region: profile?.region || '',
   });
+
+  const currentAvatar = uploadedAvatar || selectedAvatar;
+
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { toast.error('请上传图片格式文件'); return; }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      setUploadedAvatar(ev.target?.result as string);
+      setSelectedAvatar('');
+      toast.success('头像已更新');
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
 
   const handleSave = () => {
     setSaved(true);
@@ -52,21 +80,53 @@ export default function SettingsPage() {
                   <CardTitle className="text-sm font-semibold">个人资料</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-5">
-                  {/* 头像 */}
-                  <div className="flex items-center gap-4">
-                    <Avatar className="w-14 h-14">
-                      <AvatarFallback className="text-xl bg-primary text-primary-foreground">
-                        {(profile?.display_name || profile?.username || '用')?.slice(0, 1)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="text-sm font-medium">{profile?.display_name || profile?.username || '未设置昵称'}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {profile?.role === 'admin' ? '管理员' : profile?.role === 'manager' ? '运营经理' : '运营顾问'}
-                      </p>
-                      <Button variant="outline" size="sm" className="mt-2 rounded-sm text-xs h-7" onClick={() => {}}>
-                        <Upload className="w-3 h-3 mr-1" /> 更换头像
-                      </Button>
+                  {/* 头像区域 */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-4">
+                      <Avatar className="w-16 h-16 ring-2 ring-primary/20">
+                        <AvatarImage src={currentAvatar} className="object-cover" />
+                        <AvatarFallback className="text-xl bg-primary text-primary-foreground">
+                          {(profile?.display_name || profile?.username || '用')?.slice(0, 1)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="text-sm font-medium">{profile?.display_name || profile?.username || '未设置昵称'}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {profile?.role === 'admin' ? '管理员' : profile?.role === 'manager' ? '运营经理' : '运营顾问'}
+                        </p>
+                        <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+                        <Button variant="outline" size="sm" className="mt-2 rounded-sm text-xs h-7" onClick={() => fileInputRef.current?.click()}>
+                          <Upload className="w-3 h-3 mr-1" /> 上传头像
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* 内置女生头像选择 */}
+                    <div className="space-y-2">
+                      <p className="text-xs font-medium text-muted-foreground">选择内置头像</p>
+                      <div className="grid grid-cols-5 gap-2">
+                        {BUILTIN_AVATARS.map(av => (
+                          <button
+                            key={av.id}
+                            onClick={() => { setSelectedAvatar(av.url); setUploadedAvatar(''); }}
+                            className={`relative rounded-sm overflow-hidden aspect-square border-2 transition-all hover:scale-105 ${
+                              selectedAvatar === av.url ? 'border-primary ring-2 ring-primary/30' : 'border-border'
+                            }`}
+                          >
+                            <img src={av.url} alt={av.label} className="w-full h-full object-cover" />
+                            {selectedAvatar === av.url && (
+                              <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
+                                <CheckCircle2 className="w-4 h-4 text-primary" />
+                              </div>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="grid grid-cols-5 gap-2">
+                        {BUILTIN_AVATARS.map(av => (
+                          <p key={av.id} className="text-[10px] text-center text-muted-foreground truncate">{av.label}</p>
+                        ))}
+                      </div>
                     </div>
                   </div>
 

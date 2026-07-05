@@ -14,6 +14,18 @@ import type {
 const now = new Date();
 const currentMonth = now.getMonth() + 1;
 
+// 真实商家头像图片（餐厅/店铺门头）
+const MERCHANT_AVATARS = [
+  'https://miaoda-site-img.cdn.bcebos.com/images/baidu_image_search_dc313d37-cac8-4ded-8e60-56945927097e.jpg',
+  'https://miaoda-site-img.cdn.bcebos.com/images/baidu_image_search_87a2cf03-b03a-45da-abca-07fd6defb7e1.jpg',
+  'https://miaoda-site-img.cdn.bcebos.com/images/baidu_image_search_eb42f7c6-8f23-41d0-91fc-78bc185230f7.jpg',
+  'https://miaoda-site-img.cdn.bcebos.com/images/baidu_image_search_f9298045-c66d-4be5-ba6b-5120e9f1b7d6.jpg',
+  'https://miaoda-site-img.cdn.bcebos.com/images/baidu_image_search_6776b193-48fe-4859-9f68-e64392de190b.jpg',
+  'https://miaoda-site-img.cdn.bcebos.com/images/baidu_image_search_ec11362a-4826-4107-a8f8-7565e0603646.jpg',
+  'https://miaoda-site-img.cdn.bcebos.com/images/baidu_image_search_a84a1ef8-edec-4813-bfc7-e72986316343.jpg',
+  'https://miaoda-site-img.cdn.bcebos.com/images/baidu_image_search_ae7c7b2a-3ee7-4fe9-b361-02f82ec4efb0.jpg',
+];
+
 function formatPhone(phone: string): string {
   return phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2');
 }
@@ -318,7 +330,7 @@ export function getMockMerchantList(params?: {
       ),
       advantageTags,
       seasonPotential,
-      avatarUrl: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(merchant.basicInfo.name)}&backgroundColor=1D6BFF,F46800,22C55E,F59E0B,8B5CF6&backgroundType=solid&fontSize=40&fontWeight=700`,
+      avatarUrl: MERCHANT_AVATARS[Math.abs(merchant.basicInfo.name.charCodeAt(0) + merchant.basicInfo.name.charCodeAt(1)) % MERCHANT_AVATARS.length],
       address: merchant.basicInfo.address,
       contactPhone: merchant.basicInfo.contactPhone,
       managerName: merchant.basicInfo.managerName,

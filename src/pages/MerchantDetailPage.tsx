@@ -17,23 +17,40 @@ import { getMockMerchantById } from '@/services/mockData';
 import type { Merchant } from '@/types/merchant';
 import { toast } from 'sonner';
 
-// 店铺图片占位（基于商家名称生成风格图）
+// 真实店铺图片（按商家名称取余分配）
+const REAL_STORE_IMAGES = [
+  'https://miaoda-site-img.cdn.bcebos.com/images/baidu_image_search_dc313d37-cac8-4ded-8e60-56945927097e.jpg',
+  'https://miaoda-site-img.cdn.bcebos.com/images/baidu_image_search_87a2cf03-b03a-45da-abca-07fd6defb7e1.jpg',
+  'https://miaoda-site-img.cdn.bcebos.com/images/baidu_image_search_eb42f7c6-8f23-41d0-91fc-78bc185230f7.jpg',
+  'https://miaoda-site-img.cdn.bcebos.com/images/baidu_image_search_f9298045-c66d-4be5-ba6b-5120e9f1b7d6.jpg',
+  'https://miaoda-site-img.cdn.bcebos.com/images/baidu_image_search_6776b193-48fe-4859-9f68-e64392de190b.jpg',
+];
+
+// 真实菜谱图片
+const REAL_MENU_IMAGES = [
+  'https://miaoda-site-img.cdn.bcebos.com/images/baidu_image_search_f1a5161e-f054-42f5-8d29-4fc2d82f51c6.jpg',
+  'https://miaoda-site-img.cdn.bcebos.com/images/baidu_image_search_a76da3be-ecb8-46dc-b49b-63b248bb6c97.jpg',
+  'https://miaoda-site-img.cdn.bcebos.com/images/baidu_image_search_b3427738-3652-4c8a-b880-18d4132cedd7.jpg',
+  'https://miaoda-site-img.cdn.bcebos.com/images/baidu_image_search_dfb03079-29cb-41fb-a2cf-27095cc6704c.jpg',
+  'https://miaoda-site-img.cdn.bcebos.com/images/baidu_image_search_40a49a33-d619-4584-814f-aeb25b1ebeb3.jpg',
+];
+
 function getStoreImages(name: string) {
-  const seed = encodeURIComponent(name);
+  const base = name.charCodeAt(0) % REAL_STORE_IMAGES.length;
   return [
-    `https://api.dicebear.com/7.x/shapes/svg?seed=${seed}1&backgroundColor=1D6BFF,F46800&size=400`,
-    `https://api.dicebear.com/7.x/shapes/svg?seed=${seed}2&backgroundColor=22C55E,F59E0B&size=400`,
-    `https://api.dicebear.com/7.x/shapes/svg?seed=${seed}3&backgroundColor=8B5CF6,EC4899&size=400`,
+    REAL_STORE_IMAGES[base % REAL_STORE_IMAGES.length],
+    REAL_STORE_IMAGES[(base + 1) % REAL_STORE_IMAGES.length],
+    REAL_STORE_IMAGES[(base + 2) % REAL_STORE_IMAGES.length],
   ];
 }
 
 function getMenuImages(name: string) {
-  const seed = encodeURIComponent(name);
+  const base = name.charCodeAt(0) % REAL_MENU_IMAGES.length;
   return [
-    `https://api.dicebear.com/7.x/icons/svg?seed=${seed}m1&backgroundColor=FEF3C7&size=300`,
-    `https://api.dicebear.com/7.x/icons/svg?seed=${seed}m2&backgroundColor=DCFCE7&size=300`,
-    `https://api.dicebear.com/7.x/icons/svg?seed=${seed}m3&backgroundColor=EDE9FE&size=300`,
-    `https://api.dicebear.com/7.x/icons/svg?seed=${seed}m4&backgroundColor=FEE2E2&size=300`,
+    REAL_MENU_IMAGES[base % REAL_MENU_IMAGES.length],
+    REAL_MENU_IMAGES[(base + 1) % REAL_MENU_IMAGES.length],
+    REAL_MENU_IMAGES[(base + 2) % REAL_MENU_IMAGES.length],
+    REAL_MENU_IMAGES[(base + 3) % REAL_MENU_IMAGES.length],
   ];
 }
 

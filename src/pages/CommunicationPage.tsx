@@ -1,0 +1,659 @@
+import { useState, useMemo, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { AppLayout } from '@/components/layouts/AppLayout';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Phone, MessageSquare, Users, Mail, Plus, Search, Clock,
+  CheckCircle2, XCircle, RefreshCw, TrendingUp, AlertCircle, BarChart3,
+  Bold, Italic, List, ListOrdered, Heading2, Link2, Minus as HrIcon,
+  Pencil, Trash2, AlignLeft, Quote,
+} from 'lucide-react';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
+import { toast } from 'sonner';
+import { format, subDays, subHours } from 'date-fns';
+
+interface CommRecord {
+  id: string;
+  merchant_name: string;
+  channel: 'phone' | 'wechat' | 'face_to_face' | 'email';
+  duration_minutes: number | null;
+  content: string;
+  result: 'connected' | 'no_answer' | 'rejected' | 'signed' | 'follow_up';
+  contact_time: string;
+  operator: string;
+}
+
+interface FollowUpItem {
+  id: string;
+  name: string;
+  time: string;
+  priority: 'high' | 'medium' | 'low';
+  reason: string;
+  done: boolean;
+}
+
+const channelConfig = {
+  phone:        { label: '电话',  icon: Phone,         color: 'bg-primary/10 text-primary' },
+  wechat:       { label: '微信',  icon: MessageSquare,  color: 'bg-success/10 text-success' },
+  face_to_face: { label: '面谈',  icon: Users,          color: 'bg-accent/10 text-accent' },
+  email:        { label: '邮件',  icon: Mail,           color: 'bg-info/10 text-info' },
+};
+
+const resultConfig = {
+  connected: { label: '已接通', icon: CheckCircle2, color: 'text-success' },
+  no_answer: { label: '未接听', icon: Clock,         color: 'text-muted-foreground' },
+  rejected:  { label: '已拒绝', icon: XCircle,       color: 'text-destructive' },
+  signed:    { label: '已签约', icon: TrendingUp,    color: 'text-success' },
+  follow_up: { label: '待跟进', icon: RefreshCw,     color: 'text-warning' },
+};
+
+function genMockComms(count = 40): CommRecord[] {
+  const merchants = ['四季香餐厅', '美丽时光美发', '欢乐城娱乐', '如家酒店', '快乐宝贝亲子园', '铁人健身', '洁美生活服务', '阳光口腔'];
+  const channels: CommRecord['channel'][] = ['phone', 'wechat', 'face_to_face', 'email'];
+  const results: CommRecord['result'][] = ['connected', 'no_answer', 'rejected', 'signed', 'follow_up'];
+  const operators = ['王小明', '李晓红', '张伟', '陈静'];
+  const contents = [
+    '介绍了曝光提升计划，老板表示有意向，约下周再谈',
+    '电话告知最新活动方案，对方未接听',
+    '面谈深入了解暑期需求，签署了试用协议',
+    '微信发送了数据报告，对方已查看',
+    '沟通套餐价格，老板对 ROI 有疑虑，已发送案例',
+    '跟进上次面谈，确认合同条款',
+    '老板明确表示近期不考虑投放，标记为 3 个月后跟进',
+  ];
+  return Array.from({ length: count }, (_, i) => ({
+    id: `comm-${i}`,
+    merchant_name: merchants[i % merchants.length],
+    channel: channels[i % channels.length],
+    duration_minutes: channels[i % channels.length] === 'phone' ? Math.round(5 + Math.random() * 25) : null,
+    content: contents[i % contents.length],
+    result: results[i % results.length],
+    contact_time: (i < 10 ? subHours(new Date(), i * 2) : subDays(new Date(), Math.floor(i / 3))).toISOString(),
+    operator: operators[i % operators.length],
+  }));
+}
+
+const genInitialFollowUps = (): FollowUpItem[] => [
+  { id: 'fu-1', name: '四季香餐厅',   time: '今日 15:00', priority: 'high',   reason: '昨日意向较强，需确认签约',    done: false },
+  { id: 'fu-2', name: '美丽时光美发', time: '明日 10:00', priority: 'high',   reason: '对曝光套餐有疑问',            done: false },
+  { id: 'fu-3', name: '铁人健身',     time: '后天 14:00', priority: 'medium', reason: '跟进暑期活动方案',            done: false },
+  { id: 'fu-4', name: '阳光口腔',     time: '3天后',      priority: 'low',    reason: '常规季度回访',                done: false },
+];
+
+const weeklyTrendData = [
+  { day: '周一', count: 38 }, { day: '周二', count: 45 },
+  { day: '周三', count: 52 }, { day: '周四', count: 41 },
+  { day: '周五', count: 60 }, { day: '周六', count: 28 }, { day: '周日', count: 22 },
+];
+
+const statCards = [
+  { label: '本月沟通', value: '286', sub: '较上月 +12%', up: true },
+  { label: '接通率',   value: '74%', sub: '行业均值 68%', up: true },
+  { label: '本月签约', value: '18',  sub: '转化率 6.3%', up: true },
+  { label: '待跟进',   value: '43',  sub: '高优先级 12', up: false },
+];
+
+const priorityConfig = {
+  high:   { label: '高优', color: 'bg-destructive/10 text-destructive border-destructive/20' },
+  medium: { label: '中',   color: 'bg-warning/10 text-warning border-warning/20' },
+  low:    { label: '低',   color: 'bg-muted text-muted-foreground border-border' },
+};
+
+// ──────────────────────────────────────────────
+// 轻量富文本编辑器（基于 contentEditable）
+// ──────────────────────────────────────────────
+interface RichEditorProps { value: string; onChange: (v: string) => void; placeholder?: string; }
+
+function RichEditor({ value, onChange, placeholder }: RichEditorProps) {
+  const editorRef = useRef<HTMLDivElement>(null);
+
+  const exec = useCallback((cmd: string, val?: string) => {
+    document.execCommand(cmd, false, val);
+    editorRef.current?.focus();
+    if (editorRef.current) onChange(editorRef.current.innerHTML);
+  }, [onChange]);
+
+  const handleInput = useCallback(() => {
+    if (editorRef.current) onChange(editorRef.current.innerHTML);
+  }, [onChange]);
+
+  const toolbarBtns = [
+    { icon: Bold,        title: '加粗',    cmd: 'bold' },
+    { icon: Italic,      title: '斜体',    cmd: 'italic' },
+    { icon: Heading2,    title: '标题',    cmd: 'formatBlock', val: 'h3' },
+    { icon: AlignLeft,   title: '段落',    cmd: 'formatBlock', val: 'p' },
+    { icon: Quote,       title: '引用',    cmd: 'formatBlock', val: 'blockquote' },
+    { icon: List,        title: '无序列表', cmd: 'insertUnorderedList' },
+    { icon: ListOrdered, title: '有序列表', cmd: 'insertOrderedList' },
+    { icon: HrIcon,      title: '分割线',  cmd: 'insertHorizontalRule' },
+    { icon: Link2,       title: '链接',    cmd: 'createLink', val: prompt as unknown as string },
+  ];
+
+  return (
+    <div className="border border-border rounded-sm overflow-hidden">
+      {/* 工具栏 */}
+      <div className="flex flex-wrap items-center gap-0.5 p-1.5 border-b border-border bg-muted/40">
+        {toolbarBtns.map(btn => {
+          const Icon = btn.icon;
+          return (
+            <button
+              key={btn.title}
+              type="button"
+              title={btn.title}
+              onMouseDown={e => {
+                e.preventDefault();
+                const val = btn.cmd === 'createLink' ? window.prompt('请输入链接地址') ?? '' : btn.val;
+                exec(btn.cmd, val);
+              }}
+              className="w-7 h-7 flex items-center justify-center rounded hover:bg-background text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <Icon className="w-3.5 h-3.5" />
+            </button>
+          );
+        })}
+      </div>
+      {/* 编辑区 */}
+      <div
+        ref={editorRef}
+        contentEditable
+        suppressContentEditableWarning
+        data-placeholder={placeholder}
+        onInput={handleInput}
+        dangerouslySetInnerHTML={{ __html: value }}
+        className="min-h-[120px] max-h-56 overflow-y-auto p-3 text-sm focus:outline-none prose-sm
+          [&_h3]:font-bold [&_h3]:text-base [&_h3]:mt-2 [&_h3]:mb-1
+          [&_blockquote]:border-l-2 [&_blockquote]:border-primary/50 [&_blockquote]:pl-3 [&_blockquote]:italic [&_blockquote]:text-muted-foreground
+          [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5
+          [&_a]:text-primary [&_a]:underline
+          empty:before:content-[attr(data-placeholder)] empty:before:text-muted-foreground empty:before:pointer-events-none"
+      />
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────
+// 主页面
+// ──────────────────────────────────────────────
+const EMPTY_FORM = { merchant: '', channel: 'phone', content: '', result: 'connected', duration: '' };
+
+export default function CommunicationPage() {
+  const [records, setRecords] = useState<CommRecord[]>(() => genMockComms());
+  const [keyword, setKeyword]   = useState('');
+  const [channel, setChannel]   = useState('all');
+  const [result,  setResult]    = useState('all');
+  const [activeTab, setActiveTab] = useState('records');
+
+  const [addOpen, setAddOpen]   = useState(false);
+  const [editRecord, setEditRecord] = useState<CommRecord | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [form, setForm]         = useState(EMPTY_FORM);
+
+  const [followUps, setFollowUps] = useState<FollowUpItem[]>(genInitialFollowUps);
+  const [fuAddOpen, setFuAddOpen] = useState(false);
+  const [fuForm, setFuForm]       = useState({ name: '', time: '', priority: 'medium', reason: '' });
+  const [fuDeleteId, setFuDeleteId] = useState<string | null>(null);
+  const [fuEditTarget, setFuEditTarget] = useState<FollowUpItem | null>(null);
+
+  const filtered = useMemo(() => records.filter(r => {
+    if (keyword && !r.merchant_name.includes(keyword) && !r.content.includes(keyword)) return false;
+    if (channel !== 'all' && r.channel !== channel) return false;
+    if (result  !== 'all' && r.result  !== result)  return false;
+    return true;
+  }), [records, keyword, channel, result]);
+
+  const pendingFollowUps = followUps.filter(f => !f.done);
+
+  // ── 沟通记录 CRUD ──
+  const handleAddRecord = () => {
+    if (!form.merchant.trim() || !form.content.trim()) { toast.error('请填写商家和沟通内容'); return; }
+    const newRec: CommRecord = {
+      id: `comm-new-${Date.now()}`,
+      merchant_name: form.merchant,
+      channel: form.channel as CommRecord['channel'],
+      duration_minutes: form.duration ? Number(form.duration) : null,
+      content: form.content,
+      result: form.result as CommRecord['result'],
+      contact_time: new Date().toISOString(),
+      operator: '当前用户',
+    };
+    setRecords(prev => [newRec, ...prev]);
+    toast.success('沟通记录已保存');
+    setAddOpen(false);
+    setForm(EMPTY_FORM);
+  };
+
+  const handleEditRecord = () => {
+    if (!editRecord || !form.merchant.trim() || !form.content.trim()) { toast.error('请填写商家和沟通内容'); return; }
+    setRecords(prev => prev.map(r => r.id === editRecord.id
+      ? { ...r, merchant_name: form.merchant, channel: form.channel as CommRecord['channel'], content: form.content, result: form.result as CommRecord['result'], duration_minutes: form.duration ? Number(form.duration) : null }
+      : r
+    ));
+    toast.success('记录已更新');
+    setEditRecord(null);
+    setForm(EMPTY_FORM);
+  };
+
+  const openEdit = (r: CommRecord) => {
+    setEditRecord(r);
+    setForm({ merchant: r.merchant_name, channel: r.channel, content: r.content, result: r.result, duration: String(r.duration_minutes ?? '') });
+  };
+
+  // ── 待跟进 CRUD ──
+  const handleAddFu = () => {
+    if (!fuForm.name.trim()) { toast.error('请输入商家名称'); return; }
+    setFollowUps(prev => [...prev, { id: `fu-${Date.now()}`, name: fuForm.name, time: fuForm.time || '待定', priority: fuForm.priority as 'high'|'medium'|'low', reason: fuForm.reason, done: false }]);
+    toast.success('待跟进任务已添加');
+    setFuAddOpen(false);
+    setFuForm({ name: '', time: '', priority: 'medium', reason: '' });
+  };
+
+  const handleEditFu = () => {
+    if (!fuEditTarget) return;
+    setFollowUps(prev => prev.map(f => f.id === fuEditTarget.id ? { ...f, name: fuForm.name, time: fuForm.time, priority: fuForm.priority as 'high'|'medium'|'low', reason: fuForm.reason } : f));
+    toast.success('跟进任务已更新');
+    setFuEditTarget(null);
+    setFuForm({ name: '', time: '', priority: 'medium', reason: '' });
+  };
+
+  return (
+    <AppLayout title="沟通记录" actions={
+      <Button size="sm" className="rounded-sm text-xs" onClick={() => { setForm(EMPTY_FORM); setAddOpen(true); }}>
+        <Plus className="w-3.5 h-3.5 mr-1" />记录沟通
+      </Button>
+    }>
+      {/* ── 新增沟通弹窗 ── */}
+      <Dialog open={addOpen} onOpenChange={v => { setAddOpen(v); if (!v) setForm(EMPTY_FORM); }}>
+        <DialogContent className="max-w-[calc(100%-2rem)] md:max-w-lg rounded-sm">
+          <DialogHeader><DialogTitle>记录本次沟通</DialogTitle></DialogHeader>
+          <CommFormFields form={form} setForm={setForm} />
+          <div className="flex gap-2 pt-2">
+            <Button variant="outline" className="flex-1 rounded-sm" onClick={() => setAddOpen(false)}>取消</Button>
+            <Button className="flex-1 rounded-sm" onClick={handleAddRecord}>保存记录</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── 编辑沟通弹窗 ── */}
+      <Dialog open={!!editRecord} onOpenChange={v => { if (!v) { setEditRecord(null); setForm(EMPTY_FORM); } }}>
+        <DialogContent className="max-w-[calc(100%-2rem)] md:max-w-lg rounded-sm">
+          <DialogHeader><DialogTitle>编辑沟通记录</DialogTitle></DialogHeader>
+          <CommFormFields form={form} setForm={setForm} />
+          <div className="flex gap-2 pt-2">
+            <Button variant="outline" className="flex-1 rounded-sm" onClick={() => setEditRecord(null)}>取消</Button>
+            <Button className="flex-1 rounded-sm" onClick={handleEditRecord}>保存修改</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── 删除沟通确认 ── */}
+      <Dialog open={!!deleteId} onOpenChange={v => { if (!v) setDeleteId(null); }}>
+        <DialogContent className="max-w-[calc(100%-2rem)] md:max-w-sm rounded-sm">
+          <DialogHeader><DialogTitle>确认删除</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">确定要删除此沟通记录吗？</p>
+          <div className="flex gap-2 pt-2">
+            <Button variant="outline" className="flex-1 rounded-sm" onClick={() => setDeleteId(null)}>取消</Button>
+            <Button variant="destructive" className="flex-1 rounded-sm" onClick={() => { setRecords(p => p.filter(r => r.id !== deleteId)); toast.success('已删除'); setDeleteId(null); }}>删除</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── 新增跟进弹窗 ── */}
+      <Dialog open={fuAddOpen} onOpenChange={v => { setFuAddOpen(v); if (!v) setFuForm({ name: '', time: '', priority: 'medium', reason: '' }); }}>
+        <DialogContent className="max-w-[calc(100%-2rem)] md:max-w-md rounded-sm">
+          <DialogHeader><DialogTitle>新增待跟进</DialogTitle></DialogHeader>
+          <FollowUpFormFields form={fuForm} setForm={setFuForm} />
+          <div className="flex gap-2 pt-2">
+            <Button variant="outline" className="flex-1 rounded-sm" onClick={() => setFuAddOpen(false)}>取消</Button>
+            <Button className="flex-1 rounded-sm" onClick={handleAddFu}>添加</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── 编辑跟进弹窗 ── */}
+      <Dialog open={!!fuEditTarget} onOpenChange={v => { if (!v) { setFuEditTarget(null); setFuForm({ name: '', time: '', priority: 'medium', reason: '' }); } }}>
+        <DialogContent className="max-w-[calc(100%-2rem)] md:max-w-md rounded-sm">
+          <DialogHeader><DialogTitle>编辑跟进任务</DialogTitle></DialogHeader>
+          <FollowUpFormFields form={fuForm} setForm={setFuForm} />
+          <div className="flex gap-2 pt-2">
+            <Button variant="outline" className="flex-1 rounded-sm" onClick={() => setFuEditTarget(null)}>取消</Button>
+            <Button className="flex-1 rounded-sm" onClick={handleEditFu}>保存修改</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── 删除跟进确认 ── */}
+      <Dialog open={!!fuDeleteId} onOpenChange={v => { if (!v) setFuDeleteId(null); }}>
+        <DialogContent className="max-w-[calc(100%-2rem)] md:max-w-sm rounded-sm">
+          <DialogHeader><DialogTitle>确认删除</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">确定要删除此跟进任务吗？</p>
+          <div className="flex gap-2 pt-2">
+            <Button variant="outline" className="flex-1 rounded-sm" onClick={() => setFuDeleteId(null)}>取消</Button>
+            <Button variant="destructive" className="flex-1 rounded-sm" onClick={() => { setFollowUps(p => p.filter(f => f.id !== fuDeleteId)); toast.success('已删除'); setFuDeleteId(null); }}>删除</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
+        {/* KPI 卡片 */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {statCards.map((c, i) => (
+            <motion.div key={c.label} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}>
+              <Card className="rounded-sm border-border shadow-sm">
+                <CardContent className="p-3 md:p-4">
+                  <p className="text-xs text-muted-foreground">{c.label}</p>
+                  <div className="flex items-end justify-between mt-1">
+                    <p className="text-2xl font-bold tracking-tight text-primary">{c.value}</p>
+                    {c.up ? <TrendingUp className="w-3.5 h-3.5 text-success mb-1" /> : <AlertCircle className="w-3.5 h-3.5 text-warning mb-1" />}
+                  </div>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">{c.sub}</p>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="rounded-sm mb-4">
+            <TabsTrigger value="records"  className="rounded-sm text-xs"><Phone className="w-3.5 h-3.5 mr-1" />沟通记录</TabsTrigger>
+            <TabsTrigger value="followup" className="rounded-sm text-xs">
+              <AlertCircle className="w-3.5 h-3.5 mr-1" />待跟进
+              {pendingFollowUps.length > 0 && (
+                <Badge className="ml-1.5 rounded-sm text-[10px] h-4 px-1 bg-destructive text-destructive-foreground">{pendingFollowUps.length}</Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="stats"    className="rounded-sm text-xs"><BarChart3 className="w-3.5 h-3.5 mr-1" />本周趋势</TabsTrigger>
+          </TabsList>
+
+          {/* ── 沟通记录 ── */}
+          <TabsContent value="records" className="space-y-4">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input placeholder="搜索商家或内容…" value={keyword} onChange={e => setKeyword(e.target.value)} className="pl-9 rounded-sm" />
+              </div>
+              <div className="flex gap-2 shrink-0">
+                <Select value={channel} onValueChange={setChannel}>
+                  <SelectTrigger className="rounded-sm w-28 text-xs"><SelectValue placeholder="沟通方式" /></SelectTrigger>
+                  <SelectContent className="rounded-sm">
+                    <SelectItem value="all">全部方式</SelectItem>
+                    {Object.entries(channelConfig).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Select value={result} onValueChange={setResult}>
+                  <SelectTrigger className="rounded-sm w-28 text-xs"><SelectValue placeholder="沟通结果" /></SelectTrigger>
+                  <SelectContent className="rounded-sm">
+                    <SelectItem value="all">全部结果</SelectItem>
+                    {Object.entries(resultConfig).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <AnimatePresence mode="wait">
+              <div className="space-y-3">
+                {filtered.map((record, i) => {
+                  const ch = channelConfig[record.channel];
+                  const rs = resultConfig[record.result];
+                  const ChIcon = ch.icon;
+                  const RsIcon = rs.icon;
+                  return (
+                    <motion.div key={record.id} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 12 }} transition={{ delay: i * 0.02, duration: 0.2 }}>
+                      <Card className="rounded-sm border-border shadow-sm hover:border-primary/30 hover:shadow-md transition-all">
+                        <CardContent className="p-4">
+                          <div className="flex items-start gap-3">
+                            <div className={`w-9 h-9 rounded-sm flex items-center justify-center shrink-0 ${ch.color}`}>
+                              <ChIcon className="w-4 h-4" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between gap-2 flex-wrap">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="font-semibold text-sm">{record.merchant_name}</span>
+                                  <Badge variant="outline" className="rounded-sm text-[10px] font-normal">{ch.label}</Badge>
+                                  {record.duration_minutes && <span className="text-[10px] text-muted-foreground">{record.duration_minutes}分钟</span>}
+                                </div>
+                                <div className={`flex items-center gap-1 text-xs shrink-0 ${rs.color}`}>
+                                  <RsIcon className="w-3.5 h-3.5" />{rs.label}
+                                </div>
+                              </div>
+                              {/* 富文本内容渲染 */}
+                              <div
+                                className="text-sm text-muted-foreground mt-1.5 leading-relaxed
+                                  [&_h3]:font-bold [&_h3]:text-foreground [&_h3]:text-sm
+                                  [&_blockquote]:border-l-2 [&_blockquote]:border-primary/50 [&_blockquote]:pl-2 [&_blockquote]:italic
+                                  [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4
+                                  [&_a]:text-primary [&_a]:underline"
+                                dangerouslySetInnerHTML={{ __html: record.content }}
+                              />
+                              <div className="flex items-center justify-between mt-2">
+                                <span className="text-[10px] text-muted-foreground">
+                                  {format(new Date(record.contact_time), 'MM/dd HH:mm')} · {record.operator}
+                                </span>
+                                <div className="flex gap-1">
+                                  <Button variant="ghost" size="icon" className="h-6 w-6 rounded-sm" onClick={() => openEdit(record)}>
+                                    <Pencil className="w-3 h-3" />
+                                  </Button>
+                                  <Button variant="ghost" size="icon" className="h-6 w-6 rounded-sm text-destructive hover:text-destructive" onClick={() => setDeleteId(record.id)}>
+                                    <Trash2 className="w-3 h-3" />
+                                  </Button>
+                                  <Button variant="ghost" size="sm" className="h-6 text-[10px] rounded-sm px-2" onClick={() => toast.success('已标记为待跟进')}>
+                                    <RefreshCw className="w-3 h-3 mr-1" />跟进
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  );
+                })}
+                {filtered.length === 0 && (
+                  <div className="text-center py-16 text-sm text-muted-foreground">
+                    <Phone className="w-10 h-10 mx-auto mb-3 text-muted" /><p>暂无沟通记录</p>
+                  </div>
+                )}
+              </div>
+            </AnimatePresence>
+          </TabsContent>
+
+          {/* ── 待跟进 ── */}
+          <TabsContent value="followup" className="space-y-3">
+            <div className="flex justify-end">
+              <Button size="sm" className="rounded-sm text-xs" onClick={() => { setFuForm({ name: '', time: '', priority: 'medium', reason: '' }); setFuAddOpen(true); }}>
+                <Plus className="w-3.5 h-3.5 mr-1" />新增跟进
+              </Button>
+            </div>
+            {followUps.map((item, i) => {
+              const pc = priorityConfig[item.priority];
+              return (
+                <motion.div key={item.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}>
+                  <Card className={`rounded-sm border shadow-sm ${item.done ? 'opacity-50' : item.priority === 'high' ? 'border-destructive/30' : 'border-border'}`}>
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className={`font-semibold text-sm ${item.done ? 'line-through text-muted-foreground' : ''}`}>{item.name}</span>
+                            <span className={`text-[10px] px-1.5 py-0.5 rounded-sm border font-medium ${pc.color}`}>{pc.label}优先</span>
+                            {item.done && <span className="text-[10px] text-success">已完成</span>}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">{item.reason}</p>
+                          <div className="flex items-center gap-1 mt-2 text-[10px] text-muted-foreground">
+                            <Clock className="w-3 h-3" />{item.time}
+                          </div>
+                        </div>
+                        <div className="flex gap-1.5 shrink-0 flex-wrap">
+                          {!item.done && (
+                            <>
+                              <Button size="sm" variant="outline" className="rounded-sm text-xs h-7" onClick={() => toast.success('已发起呼叫')}>
+                                <Phone className="w-3 h-3 mr-1" />呼叫
+                              </Button>
+                              <Button size="sm" variant="ghost" className="rounded-sm text-xs h-7" onClick={() => { setFuEditTarget(item); setFuForm({ name: item.name, time: item.time, priority: item.priority, reason: item.reason }); }}>
+                                <Pencil className="w-3 h-3" />
+                              </Button>
+                              <Button size="sm" className="rounded-sm text-xs h-7" onClick={() => { setFollowUps(p => p.map(f => f.id === item.id ? { ...f, done: true } : f)); toast.success('已标记完成'); }}>
+                                <CheckCircle2 className="w-3 h-3 mr-1" />完成
+                              </Button>
+                            </>
+                          )}
+                          <Button size="sm" variant="ghost" className="rounded-sm text-xs h-7 text-destructive hover:text-destructive" onClick={() => setFuDeleteId(item.id)}>
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              );
+            })}
+            {followUps.length === 0 && (
+              <div className="text-center py-16 text-sm text-muted-foreground">
+                <CheckCircle2 className="w-10 h-10 mx-auto mb-3 text-muted" /><p>暂无待跟进任务</p>
+              </div>
+            )}
+          </TabsContent>
+
+          {/* ── 本周趋势 ── */}
+          <TabsContent value="stats">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card className="rounded-sm border-border shadow-sm">
+                <CardHeader className="pb-2"><CardTitle className="text-sm font-semibold">本周每日沟通量</CardTitle></CardHeader>
+                <CardContent>
+                  <div className="w-full min-w-0 overflow-hidden" style={{ height: 240 }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={weeklyTrendData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(214.3,31.8%,91.4%)" />
+                        <XAxis dataKey="day" tick={{ fontSize: 11 }} />
+                        <YAxis tick={{ fontSize: 11 }} />
+                        <Tooltip />
+                        <Bar dataKey="count" name="沟通次数" fill="hsl(221.2,83.2%,53.3%)" radius={[3, 3, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="rounded-sm border-border shadow-sm">
+                <CardHeader className="pb-2"><CardTitle className="text-sm font-semibold">渠道使用分布</CardTitle></CardHeader>
+                <CardContent className="space-y-3 pt-2">
+                  {Object.entries(channelConfig).map(([k, v]) => {
+                    const cnt = records.filter(r => r.channel === k).length;
+                    const pct = Math.round((cnt / records.length) * 100);
+                    const ChIcon = v.icon;
+                    return (
+                      <div key={k} className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-sm flex items-center justify-center shrink-0 ${v.color}`}>
+                          <ChIcon className="w-3.5 h-3.5" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex justify-between text-xs mb-1">
+                            <span>{v.label}</span>
+                            <span className="font-semibold">{pct}%</span>
+                          </div>
+                          <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                            <motion.div className="h-full bg-primary rounded-full" initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.6 }} />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </AppLayout>
+  );
+}
+
+// ── 沟通表单子组件 ──
+function CommFormFields({ form, setForm }: { form: typeof EMPTY_FORM; setForm: React.Dispatch<React.SetStateAction<typeof EMPTY_FORM>> }) {
+  return (
+    <div className="space-y-4 pt-2">
+      <div className="space-y-1.5">
+        <Label className="text-xs">商家名称</Label>
+        <Input placeholder="输入商家名称" value={form.merchant} onChange={e => setForm(f => ({ ...f, merchant: e.target.value }))} className="rounded-sm" />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label className="text-xs">沟通方式</Label>
+          <Select value={form.channel} onValueChange={v => setForm(f => ({ ...f, channel: v }))}>
+            <SelectTrigger className="rounded-sm text-xs"><SelectValue /></SelectTrigger>
+            <SelectContent className="rounded-sm">
+              {Object.entries(channelConfig).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs">沟通结果</Label>
+          <Select value={form.result} onValueChange={v => setForm(f => ({ ...f, result: v }))}>
+            <SelectTrigger className="rounded-sm text-xs"><SelectValue /></SelectTrigger>
+            <SelectContent className="rounded-sm">
+              {Object.entries(resultConfig).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      {form.channel === 'phone' && (
+        <div className="space-y-1.5">
+          <Label className="text-xs">通话时长（分钟）</Label>
+          <Input type="number" placeholder="例如：15" value={form.duration} onChange={e => setForm(f => ({ ...f, duration: e.target.value }))} className="rounded-sm" />
+        </div>
+      )}
+      <div className="space-y-1.5">
+        <Label className="text-xs">沟通内容</Label>
+        <RichEditor
+          value={form.content}
+          onChange={v => setForm(f => ({ ...f, content: v }))}
+          placeholder="记录本次沟通详情，支持加粗、列表、引用等格式…"
+        />
+      </div>
+    </div>
+  );
+}
+
+// ── 跟进表单子组件 ──
+function FollowUpFormFields({
+  form,
+  setForm,
+}: {
+  form: { name: string; time: string; priority: string; reason: string };
+  setForm: React.Dispatch<React.SetStateAction<{ name: string; time: string; priority: string; reason: string }>>;
+}) {
+  return (
+    <div className="space-y-3 pt-2">
+      <div className="space-y-1.5">
+        <Label className="text-xs">商家名称</Label>
+        <Input placeholder="商家名称" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className="rounded-sm" />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label className="text-xs">跟进时间</Label>
+          <Input placeholder="今日 15:00" value={form.time} onChange={e => setForm(f => ({ ...f, time: e.target.value }))} className="rounded-sm" />
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs">优先级</Label>
+          <Select value={form.priority} onValueChange={v => setForm(f => ({ ...f, priority: v }))}>
+            <SelectTrigger className="rounded-sm text-xs"><SelectValue /></SelectTrigger>
+            <SelectContent className="rounded-sm">
+              <SelectItem value="high">高优先</SelectItem>
+              <SelectItem value="medium">中优先</SelectItem>
+              <SelectItem value="low">低优先</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      <div className="space-y-1.5">
+        <Label className="text-xs">跟进原因</Label>
+        <Input placeholder="简述跟进原因" value={form.reason} onChange={e => setForm(f => ({ ...f, reason: e.target.value }))} className="rounded-sm" />
+      </div>
+    </div>
+  );
+}
+

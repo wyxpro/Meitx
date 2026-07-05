@@ -289,55 +289,49 @@ export function getMockMerchantList(params?: {
   count?: number;
   filters?: { category?: string; level?: 'high' | 'medium' | 'low' };
 }): MerchantListItem[] {
-  const count = params?.count ?? 50;
-  const list: MerchantListItem[] = [];
+  // 7 家固定不同品类、不同意向、头像各不相同的商家
+  const FIXED_MERCHANTS: Array<{
+    id: string; name: string; category: string;
+    monthlySales: number; monthlyOrders: number; connectionRate: number;
+    acceptanceLevel: 'high' | 'medium' | 'low';
+    potentialScore: number; advantageTags: string[];
+    seasonPotential: 'high' | 'medium' | 'low';
+    address: string; contactPhone: string; managerName: string;
+  }> = [
+    { id: 'm-1001', name: '蜀香麻辣烫旗舰店',   category: '餐饮',   monthlySales: 128000, monthlyOrders: 2560, connectionRate: 82, acceptanceLevel: 'high',   potentialScore: 92, advantageTags: ['高流水','高意向','好评店'], seasonPotential: 'high',   address: '北京市朝阳区三里屯路18号', contactPhone: '138****8801', managerName: '陈老板' },
+    { id: 'm-1002', name: '美颜造型美容工作室',  category: '丽人',   monthlySales: 46000,  monthlyOrders: 320,  connectionRate: 68, acceptanceLevel: 'medium', potentialScore: 74, advantageTags: ['潜力门店','易接通'],   seasonPotential: 'medium', address: '上海市徐汇区衡山路66号', contactPhone: '139****2202', managerName: '刘老板' },
+    { id: 'm-1003', name: '欢乐星球亲子乐园',   category: '亲子教育', monthlySales: 68000, monthlyOrders: 890,  connectionRate: 75, acceptanceLevel: 'high',   potentialScore: 88, advantageTags: ['高意向','好评店'],      seasonPotential: 'high',   address: '广州市天河区体育西路123号', contactPhone: '137****3303', managerName: '张老板' },
+    { id: 'm-1004', name: '活力健身俱乐部',     category: '运动健身', monthlySales: 52000, monthlyOrders: 410,  connectionRate: 55, acceptanceLevel: 'medium', potentialScore: 68, advantageTags: ['潜力门店'],             seasonPotential: 'medium', address: '深圳市南山区科技园路45号', contactPhone: '136****4404', managerName: '王老板' },
+    { id: 'm-1005', name: '悦享生活洗护服务',   category: '生活服务', monthlySales: 38000, monthlyOrders: 560,  connectionRate: 48, acceptanceLevel: 'low',    potentialScore: 52, advantageTags: ['潜力门店'],             seasonPotential: 'low',    address: '成都市武侯区天府大道88号', contactPhone: '135****5505', managerName: '李老板' },
+    { id: 'm-1006', name: '皇家湾酒店度假村',   category: '酒店旅游', monthlySales: 186000, monthlyOrders: 980, connectionRate: 88, acceptanceLevel: 'high',   potentialScore: 95, advantageTags: ['高流水','高意向','易接通'], seasonPotential: 'high', address: '杭州市西湖区湖滨路1号',   contactPhone: '134****6606', managerName: '赵老板' },
+    { id: 'm-1007', name: '春林休闲棋牌茶馆',   category: '休闲娱乐', monthlySales: 41000, monthlyOrders: 620,  connectionRate: 61, acceptanceLevel: 'medium', potentialScore: 71, advantageTags: ['潜力门店'],             seasonPotential: 'medium', address: '武汉市江汉区解放大道203号', contactPhone: '133****7707', managerName: '孙老板' },
+  ];
 
-  for (let i = 0; i < count; i++) {
-    const id = `m-${1000 + i}`;
-    const category = ['餐饮', '丽人', '休闲娱乐', '酒店旅游', '亲子教育', '运动健身', '生活服务', '医疗健康'][i % 8];
-    const monthlySales = Math.round(30000 + Math.random() * 150000);
-    const monthlyOrders = Math.round(monthlySales / (40 + Math.random() * 50));
-    const connectionRate = Math.round(40 + Math.random() * 55);
+  const list: MerchantListItem[] = FIXED_MERCHANTS.map((m, idx) => ({
+    id: m.id,
+    name: m.name,
+    category: m.category,
+    monthlySales: m.monthlySales,
+    monthlyOrders: m.monthlyOrders,
+    connectionRate: m.connectionRate,
+    acceptanceLevel: m.acceptanceLevel,
+    potentialScore: m.potentialScore,
+    advantageTags: m.advantageTags,
+    seasonPotential: m.seasonPotential,
+    avatarUrl: MERCHANT_AVATARS[idx % MERCHANT_AVATARS.length],
+    address: m.address,
+    contactPhone: m.contactPhone,
+    managerName: m.managerName,
+  }));
 
-    const merchant = getMockMerchantById(id);
-    const level = merchant.acceptancePrediction.level;
+  // 支持过滤
+  const filtered = list.filter(item => {
+    if (params?.filters?.category && item.category !== params.filters.category) return false;
+    if (params?.filters?.level && item.acceptanceLevel !== params.filters.level) return false;
+    return true;
+  });
 
-    if (params?.filters?.category && params.filters.category !== category) continue;
-    if (params?.filters?.level && params.filters.level !== level) continue;
-
-    const advantageTags: string[] = [];
-    if (monthlySales > 80000) advantageTags.push('高流水');
-    if (connectionRate > 75) advantageTags.push('易接通');
-    if (level === 'high') advantageTags.push('高意向');
-    if (merchant.operationData.rating > 4.3) advantageTags.push('好评店');
-    if (advantageTags.length === 0) advantageTags.push('潜力门店');
-
-    const seasonPotential: 'high' | 'medium' | 'low' = merchant.benchmark.seasonFactor > 1.1 ? 'high' : merchant.benchmark.seasonFactor > 0.9 ? 'medium' : 'low';
-
-    list.push({
-      id,
-      name: merchant.basicInfo.name,
-      category,
-      monthlySales,
-      monthlyOrders,
-      connectionRate,
-      acceptanceLevel: level,
-      potentialScore: Math.round(
-        (monthlySales / 2000) * 0.3 +
-        connectionRate * 0.4 +
-        (merchant.benchmark.seasonFactor - 0.5) * 30 +
-        (level === 'high' ? 20 : level === 'medium' ? 10 : 0)
-      ),
-      advantageTags,
-      seasonPotential,
-      avatarUrl: MERCHANT_AVATARS[Math.abs(merchant.basicInfo.name.charCodeAt(0) + merchant.basicInfo.name.charCodeAt(1)) % MERCHANT_AVATARS.length],
-      address: merchant.basicInfo.address,
-      contactPhone: merchant.basicInfo.contactPhone,
-      managerName: merchant.basicInfo.managerName,
-    });
-  }
-
-  return list.sort((a, b) => b.potentialScore - a.potentialScore);
+  return filtered.sort((a, b) => b.potentialScore - a.potentialScore);
 }
 
 export function filterMockMerchantList(

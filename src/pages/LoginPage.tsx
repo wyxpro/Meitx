@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Sparkles, Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { Sparkles, Eye, EyeOff, ArrowLeft, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
@@ -178,6 +178,22 @@ export default function LoginPage() {
             </Tabs>
           </CardContent>
         </Card>
+
+        <div className="mt-4">
+          <div className="relative flex items-center gap-3 mb-4">
+            <div className="flex-1 h-px bg-border" />
+            <span className="text-xs text-muted-foreground shrink-0">或者</span>
+            <div className="flex-1 h-px bg-border" />
+          </div>
+          <Button
+            variant="outline"
+            className="w-full rounded-sm gap-2 text-sm"
+            onClick={() => navigate('/')}
+          >
+            <User className="w-4 h-4" /> 游客一键体验
+          </Button>
+          <p className="text-center text-[11px] text-muted-foreground mt-2">无需注册，直接进入工作台体验核心功能</p>
+        </div>
 
         <p className="text-center text-xs text-muted-foreground mt-6">
           © 2026 美团阿波罗智能运营平台 · 保留所有权利

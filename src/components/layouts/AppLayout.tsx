@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import {
   LayoutDashboard, Store, BarChart3, Phone, Settings, Menu,
-  Bell, LogOut, User, Sparkles, Brain, Target, Activity, MessageSquare
+  Bell, LogOut, User, Sparkles
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -24,11 +24,7 @@ const navItems: NavItem[] = [
   { icon: LayoutDashboard, label: '工作台',   path: '/' },
   { icon: Store,           label: '商家管理', path: '/merchants' },
   { icon: Phone,           label: '沟通记录', path: '/communications' },
-  { icon: BarChart3,       label: '数据',     path: '/data-center' },
-  { icon: Brain,           label: '诊断',     path: '/package-recommendation' },
-  { icon: Target,          label: '套餐',     path: '/package-recommendation' },
-  { icon: MessageSquare,   label: '话术',     path: '/communications' },
-  { icon: Activity,        label: '接受度',   path: '/acceptance-prediction' },
+  { icon: BarChart3,       label: '数据统计', path: '/data-center' },
   { icon: Settings,        label: '个人中心', path: '/settings' },
 ];
 

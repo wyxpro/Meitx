@@ -1,17 +1,12 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion, useScroll, useTransform, useMotionValue, useSpring, AnimatePresence } from 'motion/react';
-import useEmblaCarousel from 'embla-carousel-react';
-import {
-  RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
-  ResponsiveContainer, Tooltip
-} from 'recharts';
+import { motion, useScroll, useTransform, useMotionValue, useSpring } from 'motion/react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   Sparkles, Brain, BarChart3, Phone, Users, Star, Check,
-  ChevronRight, ChevronLeft, Zap, Shield, Globe, TrendingUp,
+  ChevronRight, Zap, Shield, Globe, TrendingUp,
   MessageSquare, Target, Award, ArrowRight, Play, Bot,
 } from 'lucide-react';
 
@@ -26,12 +21,20 @@ const features = [
 ];
 
 const testimonials = [
-  { name: '王总', role: '区域运营经理 · 华北大区', avatar: '王', rating: 5, text: '用了阿波罗 AI 插件后，我的团队签约转化率从 8% 提升到了 15%，话术生成功能太实用了，新人上手速度翻倍！', company: '华北大区 · 300+ 商家' },
-  { name: '李晓红', role: '高级运营顾问 · 上海', avatar: '李', rating: 5, text: '数据中心的雷达图评估真的帮了我大忙，每次去拜访商家前都先看 AI 诊断报告，有备而来效果好多了。', company: '华东区域 · 180+ 商家' },
-  { name: '张伟', role: '城市负责人 · 成都', avatar: '张', rating: 5, text: '季节性预测功能太准了，提前两周就知道哪些商家需要夏季促销套餐，抢先布局直接拿下 12 家大单。', company: '西南大区 · 260+ 商家' },
-  { name: '陈静', role: '运营专员 · 广州', avatar: '陈', rating: 4, text: '界面简洁，功能强大，移动端也很流畅。沟通记录自动归档，再也不用手动整理了，效率提升明显。', company: '华南区域 · 120+ 商家' },
-  { name: '刘明', role: '团队主管 · 武汉', avatar: '刘', rating: 5, text: '套餐推荐功能帮我们精准匹配商家需求，首次拜访签约率提升了 40%，团队业绩整体上升了两个档次。', company: '华中区域 · 150+ 商家' },
+  { name: '王总', role: '区域运营经理 · 华北大区', avatar: '王', rating: 5, text: '用了阿波罗 AI 插件后，我的团队签约转化率从 8% 提升到了 15%，话术生成功能太实用了，新人上手速度翻倍！', tags: ['话术生成', '转化率'] },
+  { name: '李晓红', role: '高级运营顾问 · 上海', avatar: '李', rating: 5, text: '数据中心的诊断功能帮了我大忙，每次去拜访商家前都先看 AI 诊断报告，有备而来效果好多了。', tags: ['AI诊断', '数据分析'] },
+  { name: '张伟', role: '城市负责人 · 成都', avatar: '张', rating: 5, text: '季节性预测功能太准了，提前两周就知道哪些商家需要夏季促销套餐，抢先布局直接拿下 12 家大单。', tags: ['套餐推荐', '精准预测'] },
+  { name: '陈静', role: '运营专员 · 广州', avatar: '陈', rating: 4, text: '界面简洁，功能强大，沟通记录自动归档，再也不用手动整理了，效率提升明显，强烈推荐！', tags: ['沟通记录', '效率提升'] },
+  { name: '刘明', role: '团队主管 · 武汉', avatar: '刘', rating: 5, text: '套餐推荐功能帮我们精准匹配商家需求，首次拜访签约率提升了 40%，团队业绩整体上升了两个档次。', tags: ['智能套餐', '签约提升'] },
+  { name: '赵雪', role: '运营顾问 · 杭州', avatar: '赵', rating: 5, text: '接受度预测准确率令人惊讶，根据预测结果调整拜访策略后，被拒绝的概率大幅下降，省了太多时间。', tags: ['接受度预测', '拜访策略'] },
+  { name: '孙宇', role: '大区总监 · 深圳', avatar: '孙', rating: 5, text: '整个团队推广使用后，月度签约数从 30 单增长到 52 单，数据驱动运营的效果真的非常显著。', tags: ['团队协作', '业绩增长'] },
+  { name: '周芳', role: '商家顾问 · 北京', avatar: '周', rating: 5, text: '话术生成功能根据商家画像定制化，打电话时底气足了很多，商家也更愿意听我介绍方案了。', tags: ['个性化话术', '沟通提升'] },
+  { name: '吴鹏', role: '运营主管 · 南京', avatar: '吴', rating: 4, text: '高潜商家筛选功能帮我们从 200 家池子里精准找到最值得跟进的 20 家，ROI 提升非常明显。', tags: ['商家筛选', 'ROI提升'] },
+  { name: '郑婷', role: '城市运营 · 重庆', avatar: '郑', rating: 5, text: '痛点诊断功能能自动识别商家核心问题，不用我一一分析，极大节省了备单时间，拜访质量翻倍。', tags: ['痛点诊断', '时间节省'] },
 ];
+
+const row1 = testimonials.slice(0, 5);
+const row2 = testimonials.slice(5);
 
 const plans = [
   {
@@ -49,15 +52,6 @@ const plans = [
     features: ['多团队协作', '专属数据看板', 'API 对接支持', '专属培训服务', '私有化部署选项', '7×24 专线支持'],
     cta: '联系销售', primary: false,
   },
-];
-
-const radarData = [
-  { subject: '签约转化', 使用前: 55, 使用后: 88 },
-  { subject: '沟通效率', 使用前: 60, 使用后: 92 },
-  { subject: '痛点识别', 使用前: 40, 使用后: 90 },
-  { subject: '数据分析', 使用前: 45, 使用后: 94 },
-  { subject: '客户维护', 使用前: 58, 使用后: 87 },
-  { subject: '新人成长', 使用前: 35, 使用后: 82 },
 ];
 
 const stats = [
@@ -131,6 +125,33 @@ function FloatingCard3D({ children, delay = 0 }: { children: React.ReactNode; de
   );
 }
 
+function TestimonialCard({ t }: { t: { name: string; role: string; avatar: string; rating: number; text: string; tags: string[] } }) {
+  return (
+    <div className="flex-shrink-0 w-72 md:w-80">
+      <Card className="rounded-2xl border-border shadow-sm h-full">
+        <CardContent className="p-5 flex flex-col h-full">
+          <StarRating rating={t.rating} />
+          <p className="text-sm text-muted-foreground leading-relaxed mt-3 flex-1 text-pretty">"{t.text}"</p>
+          <div className="flex flex-wrap gap-1 mt-3">
+            {t.tags.map(tag => (
+              <span key={tag} className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary">{tag}</span>
+            ))}
+          </div>
+          <div className="flex items-center gap-3 mt-4 pt-3 border-t border-border">
+            <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm shrink-0">
+              {t.avatar}
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold truncate">{t.name}</p>
+              <p className="text-[10px] text-muted-foreground truncate">{t.role}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 function NavBar() {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
@@ -170,18 +191,6 @@ export default function LandingPage() {
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
   const heroY = useTransform(scrollYProgress, [0, 1], [0, 120]);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
-
-  // Embla carousel
-  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: 'start' });
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
-  const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
-  useEffect(() => {
-    if (!emblaApi) return;
-    emblaApi.on('select', () => setSelectedIndex(emblaApi.selectedScrollSnap()));
-    const id = setInterval(() => emblaApi.scrollNext(), 4000);
-    return () => clearInterval(id);
-  }, [emblaApi]);
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
@@ -254,10 +263,10 @@ export default function LandingPage() {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="flex flex-col sm:flex-row gap-4 justify-center mt-10"
           >
-            <Button size="lg" className="rounded-xl h-13 px-8 text-base shadow-xl shadow-primary/25 gap-2.5 font-semibold" onClick={() => navigate('/login')}>
+            <Button size="lg" className="rounded-xl h-16 px-8 text-base shadow-xl shadow-primary/25 gap-2.5 font-semibold" onClick={() => navigate('/login')}>
               <Bot className="w-5 h-5" /> 立即免费体验
             </Button>
-            <Button size="lg" variant="outline" className="rounded-xl h-13 px-8 text-base gap-2.5" onClick={() => navigate('/')}>
+            <Button size="lg" variant="outline" className="rounded-xl h-16 px-8 text-base gap-2.5" onClick={() => navigate('/')}>
               <Play className="w-4 h-4" /> 查看演示
             </Button>
           </motion.div>
@@ -332,83 +341,9 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── Radar 效果对比 ── */}
-      <section className="py-24 px-4">
-        <div className="max-w-6xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <Badge variant="outline" className="rounded-full px-4 py-1 text-xs mb-4">效果对比</Badge>
-            <h2 className="text-3xl md:text-4xl font-black tracking-tight text-balance">用数据说话</h2>
-            <p className="mt-4 text-muted-foreground text-pretty">使用阿波罗 AI 前后，运营能力全面提升</p>
-          </motion.div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -40 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.7 }}
-              className="w-full min-w-0"
-              style={{ height: 360 }}
-            >
-              <ResponsiveContainer width="100%" height="100%">
-                <RadarChart data={radarData}>
-                  <PolarGrid stroke="hsl(var(--border))" />
-                  <PolarAngleAxis dataKey="subject" tick={{ fontSize: 12 }} />
-                  <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fontSize: 10 }} />
-                  <Radar name="使用前" dataKey="使用前" stroke="hsl(var(--muted-foreground))" fill="hsl(var(--muted-foreground))" fillOpacity={0.15} strokeDasharray="4 2" />
-                  <Radar name="使用后" dataKey="使用后" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.3} />
-                  <Tooltip />
-                </RadarChart>
-              </ResponsiveContainer>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, x: 40 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.7 }}
-              className="space-y-4"
-            >
-              {radarData.map((item, i) => (
-                <motion.div
-                  key={item.subject}
-                  initial={{ opacity: 0, x: 20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.1 }}
-                  className="space-y-1.5"
-                >
-                  <div className="flex justify-between text-sm">
-                    <span className="font-medium">{item.subject}</span>
-                    <span className="text-success font-bold">+{item.使用后 - item.使用前}分</span>
-                  </div>
-                  <div className="relative h-2.5 bg-muted rounded-full overflow-hidden">
-                    <div className="absolute h-full bg-muted-foreground/30 rounded-full" style={{ width: `${item.使用前}%` }} />
-                    <motion.div
-                      className="absolute h-full bg-primary rounded-full"
-                      initial={{ width: 0 }}
-                      whileInView={{ width: `${item.使用后}%` }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.8, delay: i * 0.1 }}
-                    />
-                  </div>
-                  <div className="flex justify-between text-[10px] text-muted-foreground">
-                    <span>使用前 {item.使用前}</span>
-                    <span>使用后 {item.使用后}</span>
-                  </div>
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Testimonials carousel ── */}
-      <section id="testimonials" className="py-24 px-4">
-        <div className="max-w-6xl mx-auto">
+      {/* ── Testimonials 双排无限滚动 ── */}
+      <section id="testimonials" className="py-24 overflow-hidden">
+        <div className="max-w-6xl mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -419,53 +354,39 @@ export default function LandingPage() {
             <h2 className="text-3xl md:text-4xl font-black tracking-tight text-balance">听听他们怎么说</h2>
             <p className="mt-4 text-muted-foreground text-pretty">来自全国各地运营团队的真实反馈</p>
           </motion.div>
+        </div>
 
-          <div className="relative">
-            <div className="overflow-hidden" ref={emblaRef}>
-              <div className="flex gap-4">
-                {testimonials.map((t, i) => (
-                  <div key={i} className="flex-[0_0_100%] md:flex-[0_0_calc(50%-8px)] lg:flex-[0_0_calc(33.33%-11px)] min-w-0">
-                    <Card className="h-full rounded-2xl border-border shadow-sm hover:shadow-md transition-shadow">
-                      <CardContent className="p-6 flex flex-col h-full">
-                        <StarRating rating={t.rating} />
-                        <p className="text-sm text-muted-foreground leading-relaxed mt-3 flex-1 text-pretty">"{t.text}"</p>
-                        <div className="flex items-center gap-3 mt-5 pt-4 border-t border-border">
-                          <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold shrink-0">
-                            {t.avatar}
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-sm font-semibold truncate">{t.name}</p>
-                            <p className="text-[10px] text-muted-foreground truncate">{t.role}</p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                ))}
-              </div>
-            </div>
-            {/* Controls */}
-            <div className="flex items-center justify-center gap-3 mt-8">
-              <button
-                onClick={scrollPrev}
-                className="w-9 h-9 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              {testimonials.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => emblaApi?.scrollTo(i)}
-                  className={`rounded-full transition-all ${selectedIndex === i ? 'w-6 h-2.5 bg-primary' : 'w-2.5 h-2.5 bg-muted'}`}
-                />
+        {/* 上排：向左滚动 */}
+        <div className="relative mb-4">
+          <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+          <div className="overflow-hidden">
+            <motion.div
+              className="flex gap-4"
+              animate={{ x: ['0%', '-50%'] }}
+              transition={{ duration: 30, ease: 'linear', repeat: Infinity }}
+            >
+              {[...row1, ...row1].map((t, i) => (
+                <TestimonialCard key={i} t={t} />
               ))}
-              <button
-                onClick={scrollNext}
-                className="w-9 h-9 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
+            </motion.div>
+          </div>
+        </div>
+
+        {/* 下排：向右滚动 */}
+        <div className="relative">
+          <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+          <div className="overflow-hidden">
+            <motion.div
+              className="flex gap-4"
+              animate={{ x: ['-50%', '0%'] }}
+              transition={{ duration: 32, ease: 'linear', repeat: Infinity }}
+            >
+              {[...row2, ...row2].map((t, i) => (
+                <TestimonialCard key={i} t={t} />
+              ))}
+            </motion.div>
           </div>
         </div>
       </section>

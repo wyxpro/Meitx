@@ -34,20 +34,18 @@ export default function HomePage() {
         {/* KPI 概览 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           {[
-            { label: '今日跟进商家', value: '23', change: '+12%', up: true, icon: Phone, color: 'primary', bg: 'from-primary/10 to-primary/5' },
-            { label: '本月签约数', value: '8', change: '+33%', up: true, icon: FileCheck, color: 'accent', bg: 'from-accent/10 to-accent/5' },
-            { label: '待处理沟通', value: '15', change: '-5%', up: false, icon: MessageSquare, color: 'info', bg: 'from-info/10 to-info/5' },
-            { label: '高潜商家池', value: '128', change: '+8%', up: true, icon: Users, color: 'success', bg: 'from-success/10 to-success/5' },
+            { label: '今日跟进商家', value: '23', change: '+12%', up: true, icon: Phone, borderClass: 'border-t-amber-500', iconClass: 'text-amber-600 bg-amber-500/10', bg: 'from-amber-500/8 to-amber-500/3' },
+            { label: '本月签约数', value: '8', change: '+33%', up: true, icon: FileCheck, borderClass: 'border-t-emerald-500', iconClass: 'text-emerald-600 bg-emerald-500/10', bg: 'from-emerald-500/8 to-emerald-500/3' },
+            { label: '待处理沟通', value: '15', change: '-5%', up: false, icon: MessageSquare, borderClass: 'border-t-rose-500', iconClass: 'text-rose-600 bg-rose-500/10', bg: 'from-rose-500/8 to-rose-500/3' },
+            { label: '高潜商家池', value: '128', change: '+8%', up: true, icon: Users, borderClass: 'border-t-blue-500', iconClass: 'text-blue-600 bg-blue-500/10', bg: 'from-blue-500/8 to-blue-500/3' },
           ].map((item, i) => {
             const Icon = item.icon;
-            const colorClass = item.color === 'primary' ? 'text-primary bg-primary/15' : item.color === 'accent' ? 'text-accent bg-accent/15' : item.color === 'info' ? 'text-info bg-info/15' : 'text-success bg-success/15';
-            const borderClass = item.color === 'primary' ? 'border-t-primary' : item.color === 'accent' ? 'border-t-accent' : item.color === 'info' ? 'border-t-info' : 'border-t-success';
             return (
               <motion.div key={item.label} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}>
-                <Card className={`rounded-xl border-border shadow-sm border-t-4 ${borderClass} bg-gradient-to-br ${item.bg} overflow-hidden hover:shadow-md transition-shadow`}>
+                <Card className={`rounded-xl border-border shadow-sm border-t-4 ${item.borderClass} bg-gradient-to-br ${item.bg} overflow-hidden hover:shadow-md transition-shadow`}>
                   <CardContent className="p-3 md:p-4">
                     <div className="flex items-start justify-between">
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${colorClass}`}>
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${item.iconClass}`}>
                         <Icon className="w-4 h-4" />
                       </div>
                       <span className={`text-[10px] md:text-xs flex items-center gap-0.5 px-1.5 py-0.5 rounded-full ${item.up ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'}`}>

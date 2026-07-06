@@ -184,7 +184,7 @@ export default function MerchantFilterPage() {
       {/* 桌面端筛选面板 */}
       <aside className="hidden md:flex flex-col w-72 shrink-0 border-r border-border bg-card p-4">
         <div className="flex items-center gap-2 mb-6">
-          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-sm" onClick={() => navigate('/')}>
+          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-sm" onClick={() => navigate('/dashboard')}>
             <ArrowLeft className="w-4 h-4" />
           </Button>
           <h1 className="font-semibold text-sm">优质商家筛选</h1>
@@ -198,7 +198,7 @@ export default function MerchantFilterPage() {
       <div className="flex-1 min-w-0 flex flex-col">
         <header className="h-14 border-b border-border bg-card flex items-center justify-between px-4 md:px-6 shrink-0">
           <div className="flex items-center gap-2 min-w-0 flex-1">
-            <Button variant="ghost" size="icon" className="md:hidden h-8 w-8 rounded-sm shrink-0" onClick={() => navigate('/')}>
+            <Button variant="ghost" size="icon" className="md:hidden h-8 w-8 rounded-sm shrink-0" onClick={() => navigate('/dashboard')}>
               <ArrowLeft className="w-4 h-4" />
             </Button>
             <h2 className="font-semibold text-sm truncate">筛选结果</h2>

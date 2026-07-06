@@ -99,7 +99,7 @@ export default function MerchantDetailPage() {
       <div className="flex-1 min-w-0 flex flex-col">
         <header className="h-14 border-b border-border bg-card flex items-center justify-between px-4 md:px-6 shrink-0">
           <div className="flex items-center gap-3 min-w-0 flex-1">
-            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-sm shrink-0" onClick={() => navigate('/')}>
+            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-sm shrink-0" onClick={() => navigate('/dashboard')}>
               <ArrowLeft className="w-4 h-4" />
             </Button>
             <div className="min-w-0 flex-1">

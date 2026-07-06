@@ -31,7 +31,7 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { icon: LayoutDashboard, label: '工作台',   path: '/' },
+  { icon: LayoutDashboard, label: '工作台',   path: '/dashboard' },
   { icon: Store,           label: '商家管理', path: '/merchants' },
   { icon: Phone,           label: '沟通记录', path: '/communications' },
   { icon: BarChart3,       label: '数据统计', path: '/data-center' },
@@ -43,25 +43,25 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const navigate = useNavigate();
   const { profile, signOut } = useAuth();
 
-  const handleLogoClick = () => { navigate('/landing'); onNavigate?.(); };
+  const handleLogoClick = () => { navigate('/'); onNavigate?.(); };
 
   return (
     <div className="h-full flex flex-col bg-card border-r border-border">
       {/* Logo */}
       <button
         onClick={handleLogoClick}
-        className="h-14 flex items-center px-4 border-b border-border hover:bg-muted/50 transition-colors w-full text-left shrink-0"
+        className="h-16 flex items-center px-5 border-b border-border hover:bg-muted/50 transition-colors w-full text-left shrink-0"
       >
-        <img src="/favicon.png" alt="美团阿波罗" className="w-7 h-7 object-contain mr-2 shrink-0" />
+        <img src="/favicon.png" alt="美团阿波罗" className="w-9 h-9 object-contain mr-2.5 shrink-0" />
         <div>
-          <h1 className="font-semibold text-sm leading-tight">美团阿波罗</h1>
-          <p className="text-[10px] text-muted-foreground">商家智能运营</p>
+          <h1 className="font-bold text-base leading-tight">美团阿波罗</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">商家智能运营</p>
         </div>
       </button>
 
       {/* Nav */}
-      <ScrollArea className="flex-1 py-2">
-        <nav className="px-2 space-y-0.5">
+      <ScrollArea className="flex-1 py-3">
+        <nav className="px-3 space-y-1.5">
           {navItems.map((item) => {
             const active = location.pathname === item.path ||
               (item.path !== '/' && location.pathname.startsWith(item.path));
@@ -70,16 +70,16 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                 key={item.path + item.label}
                 to={item.path}
                 onClick={onNavigate}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm transition-colors ${
+                className={`flex items-center gap-3.5 px-4 py-3 rounded-lg text-base transition-all duration-200 ${
                   active
-                    ? 'bg-primary/10 text-primary font-medium'
+                    ? 'bg-primary/10 text-primary font-semibold'
                     : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                 }`}
               >
-                <item.icon className="w-4 h-4 shrink-0" />
+                <item.icon className="w-5 h-5 shrink-0" />
                 <span className="flex-1">{item.label}</span>
                 {item.badge && (
-                  <Badge className="rounded-sm text-[10px] h-4 px-1 bg-primary text-primary-foreground">
+                  <Badge className="rounded-md text-xs h-5 px-1.5 bg-primary text-primary-foreground font-semibold">
                     {item.badge}
                   </Badge>
                 )}
@@ -90,42 +90,37 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       </ScrollArea>
 
       {/* User Footer */}
-      <div className="p-3 border-t border-border shrink-0">
-        <div className="bg-muted/50 rounded-sm p-3 mb-3">
-          <p className="text-xs font-medium">今日待跟进</p>
-          <p className="text-lg font-bold text-primary mt-1">23</p>
-          <p className="text-[10px] text-muted-foreground">高意向商家 8 家</p>
-        </div>
+      <div className="p-4 border-t border-border shrink-0">
         {profile ? (
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             {/* 用户信息 */}
             <button
-              className="w-full flex items-center gap-2 px-2 py-2 rounded-sm hover:bg-muted transition-colors"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-muted transition-colors border border-transparent hover:border-border/30"
               onClick={() => { navigate('/settings'); onNavigate?.(); }}
             >
-              <Avatar className="w-7 h-7 shrink-0">
+              <Avatar className="w-9 h-9 shrink-0">
                 <AvatarImage src={(profile as { avatar_url?: string }).avatar_url} />
-                <AvatarFallback className="text-xs bg-primary text-primary-foreground">
+                <AvatarFallback className="text-sm bg-primary text-primary-foreground font-bold">
                   {(profile.display_name || profile.username || '用')?.slice(0, 1)}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0 text-left">
-                <p className="text-xs font-medium truncate">{profile.display_name || profile.username || '用户'}</p>
-                <p className="text-[10px] text-muted-foreground">{profile.role === 'admin' ? '管理员' : profile.role === 'manager' ? '运营经理' : '运营顾问'}</p>
+                <p className="text-sm font-semibold truncate text-foreground">{profile.display_name || profile.username || '用户'}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{profile.role === 'admin' ? '管理员' : profile.role === 'manager' ? '运营经理' : '运营顾问'}</p>
               </div>
-              <User className="w-3 h-3 text-muted-foreground shrink-0" />
+              <User className="w-4 h-4 text-muted-foreground shrink-0" />
             </button>
             {/* 退出登录 */}
             <button
-              className="w-full flex items-center gap-2 px-2 py-2 rounded-sm text-destructive hover:bg-destructive/10 transition-colors text-xs"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-destructive hover:bg-destructive/10 transition-colors text-sm font-medium"
               onClick={async () => { await signOut(); toast.success('已安全退出'); navigate('/login'); }}
             >
-              <LogOut className="w-3.5 h-3.5 shrink-0" />
+              <LogOut className="w-4.5 h-4.5 shrink-0" />
               <span>退出登录</span>
             </button>
           </div>
         ) : (
-          <Button size="sm" className="w-full rounded-sm text-xs" onClick={() => navigate('/login')}>
+          <Button size="default" className="w-full rounded-xl text-sm font-semibold" onClick={() => navigate('/login')}>
             登录
           </Button>
         )}
@@ -147,7 +142,7 @@ export function AppLayout({ children, title, actions }: AppLayoutProps) {
   return (
     <div className="flex min-h-screen w-full bg-background">
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex flex-col w-64 shrink-0 sticky top-0 h-screen overflow-hidden">
+      <aside className="hidden lg:flex flex-col w-72 shrink-0 sticky top-0 h-screen overflow-hidden">
         <SidebarContent />
       </aside>
 
@@ -163,7 +158,7 @@ export function AppLayout({ children, title, actions }: AppLayoutProps) {
                   <Menu className="w-4 h-4" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="p-0 w-64 rounded-sm" aria-describedby={undefined}>
+              <SheetContent side="left" className="p-0 w-72 rounded-sm" aria-describedby={undefined}>
                 <SidebarContent onNavigate={() => setMobileOpen(false)} />
               </SheetContent>
             </Sheet>
@@ -208,77 +203,7 @@ export function AppLayout({ children, title, actions }: AppLayoutProps) {
               </PopoverContent>
             </Popover>
 
-            {/* 头像用户弹窗 */}
-            {profile && (
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Avatar className="w-7 h-7 cursor-pointer ring-2 ring-transparent hover:ring-primary/30 transition-all">
-                    <AvatarImage src={(profile as { avatar_url?: string }).avatar_url} />
-                    <AvatarFallback className="text-xs bg-primary text-primary-foreground">
-                      {(profile.display_name || profile.username || '用')?.slice(0, 1)}
-                    </AvatarFallback>
-                  </Avatar>
-                </PopoverTrigger>
-                <PopoverContent align="end" className="w-64 p-0 rounded-sm shadow-xl">
-                  {/* 用户信息头 */}
-                  <div className="bg-gradient-to-br from-primary/10 to-primary/5 px-4 py-4 border-b border-border">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="w-10 h-10 ring-2 ring-primary/20">
-                        <AvatarImage src={(profile as { avatar_url?: string }).avatar_url} />
-                        <AvatarFallback className="text-sm bg-primary text-primary-foreground font-bold">
-                          {(profile.display_name || profile.username || '用')?.slice(0, 1)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold truncate">{profile.display_name || profile.username || '用户'}</p>
-                        <Badge variant="outline" className="rounded-sm text-[10px] h-4 px-1.5 mt-0.5 border-primary/30 text-primary">
-                          {profile.role === 'admin' ? '管理员' : profile.role === 'manager' ? '运营经理' : '运营顾问'}
-                        </Badge>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-3 gap-2 mt-3">
-                      {[
-                        { label: '本月签约', value: '8' },
-                        { label: '跟进商家', value: '23' },
-                        { label: '完成率', value: '72%' },
-                      ].map(s => (
-                        <div key={s.label} className="text-center bg-background/60 rounded-sm py-1.5">
-                          <p className="text-sm font-bold text-primary">{s.value}</p>
-                          <p className="text-[10px] text-muted-foreground">{s.label}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  {/* 快捷入口 */}
-                  <div className="p-2">
-                    {[
-                      { icon: User, label: '个人资料', path: '/settings' },
-                      { icon: BarChart3, label: '数据统计', path: '/data-center' },
-                      { icon: MessageSquare, label: '沟通记录', path: '/communications' },
-                    ].map(item => (
-                      <Link
-                        key={item.path}
-                        to={item.path}
-                        className="flex items-center gap-3 px-3 py-2 rounded-sm hover:bg-muted transition-colors text-sm"
-                      >
-                        <item.icon className="w-4 h-4 text-muted-foreground shrink-0" />
-                        <span>{item.label}</span>
-                        <ChevronRight className="w-3.5 h-3.5 text-muted-foreground ml-auto" />
-                      </Link>
-                    ))}
-                  </div>
-                  <div className="border-t border-border p-2">
-                    <button
-                      className="w-full flex items-center gap-3 px-3 py-2 rounded-sm text-destructive hover:bg-destructive/10 transition-colors text-sm"
-                      onClick={async () => { await signOut(); toast.success('已安全退出'); }}
-                    >
-                      <LogOut className="w-4 h-4 shrink-0" />
-                      <span>退出登录</span>
-                    </button>
-                  </div>
-                </PopoverContent>
-              </Popover>
-            )}
+            {/* Popover Removed */}
           </div>
         </header>
 

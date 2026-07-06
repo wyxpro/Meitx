@@ -16,7 +16,7 @@ const features = [
   { icon: BarChart3, title: '数据驱动决策', desc: '多维度数据大盘，雷达图综合评估，趋势预测助您提前布局', color: 'from-emerald-500/20 to-emerald-600/5', iconBg: 'bg-emerald-500/10 text-emerald-500' },
   { icon: Phone, title: '智能话术生成', desc: '根据商家画像动态生成个性化沟通话术，支持电话/微信/面谈三种场景', color: 'from-amber-500/20 to-amber-600/5', iconBg: 'bg-amber-500/10 text-amber-500' },
   { icon: Target, title: '精准套餐推荐', desc: '结合季节、品类、历史数据，AI 推算最高 ROI 方案组合', color: 'from-violet-500/20 to-violet-600/5', iconBg: 'bg-violet-500/10 text-violet-500' },
-  { icon: TrendingUp, title: '签约预测引擎', desc: '基于商家行为轨迹，提前预测接受概率，让每次拜访都有的放矢', color: 'from-rose-500/20 to-rose-600/5', iconBg: 'bg-rose-500/10 text-rose-500' },
+  { icon: TrendingUp, title: '签约预测引擎', desc: '基于商家行为轨迹，提前预测接受概率，让每次访问都有的放矢', color: 'from-rose-500/20 to-rose-600/5', iconBg: 'bg-rose-500/10 text-rose-500' },
   { icon: MessageSquare, title: '全链路跟踪', desc: '沟通记录、跟进提醒、话术反馈闭环，让商机不再流失', color: 'from-cyan-500/20 to-cyan-600/5', iconBg: 'bg-cyan-500/10 text-cyan-500' },
 ];
 
@@ -46,6 +46,11 @@ const plans = [
     name: '专业版', price: '¥299', period: '/月', badge: '最受欢迎',
     features: ['无限商家管理', '全量数据分析', 'AI 话术生成不限次', '接受度预测', '套餐智能推荐', '优先客服支持'],
     cta: '立即订阅', primary: true,
+  },
+  {
+    name: '永久版', price: '¥1999', period: '/终身', badge: '终身买断',
+    features: ['终身无限使用', '专属 AI 算法模型', '独立云端数据备份', '1对1专属运营顾问', '首发功能免费升级', 'VIP 尊享技术支持'],
+    cta: '一键买断', primary: false,
   },
   {
     name: '企业版', price: '定制', period: '', badge: '',
@@ -162,21 +167,23 @@ function NavBar() {
   }, []);
 
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 h-16 flex items-center justify-between px-6 md:px-12 transition-all duration-300 ${scrolled ? 'bg-background/90 backdrop-blur-xl border-b border-border shadow-sm' : 'bg-transparent'}`}>
-      <Link to="/landing" className="flex items-center gap-2.5">
-        <img src="/favicon.png" alt="美团阿波罗" className="w-8 h-8 object-contain" />
-        <span className="font-bold text-base tracking-tight">美团阿波罗</span>
-      </Link>
-      <nav className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
-        {[['功能', '#features'], ['数据', '#stats'], ['评价', '#testimonials'], ['定价', '#pricing']].map(([label, href]) => (
-          <a key={label} href={href} className="hover:text-foreground transition-colors">{label}</a>
-        ))}
-      </nav>
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="sm" className="rounded-lg text-sm hidden md:flex" onClick={() => navigate('/login')}>登录</Button>
-        <Button size="sm" className="rounded-lg text-sm shadow-md shadow-primary/20 gap-1.5" onClick={() => navigate('/login')}>
-          免费试用 <ArrowRight className="w-3.5 h-3.5" />
-        </Button>
+    <header className={`fixed top-0 left-0 right-0 z-50 h-20 flex items-center transition-all duration-300 ${scrolled ? 'bg-background/90 backdrop-blur-xl border-b border-border shadow-sm h-16' : 'bg-transparent'}`}>
+      <div className="w-full max-w-5xl mx-auto flex items-center justify-between px-6 md:px-8">
+        <Link to="/" className="flex items-center gap-3">
+          <img src="/favicon.png" alt="美团阿波罗" className="w-9 h-9 object-contain" />
+          <span className="font-extrabold text-lg md:text-xl tracking-tight text-foreground">美团阿波罗</span>
+        </Link>
+        <nav className="hidden md:flex items-center gap-10 text-base font-medium text-muted-foreground">
+          {[['功能', '#features'], ['数据', '#stats'], ['评价', '#testimonials'], ['定价', '#pricing']].map(([label, href]) => (
+            <a key={label} href={href} className="hover:text-foreground hover:scale-105 transition-all duration-200">{label}</a>
+          ))}
+        </nav>
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" className="rounded-xl text-base font-medium hidden md:flex hover:bg-muted/60" onClick={() => navigate('/login')}>登录</Button>
+          <Button className="rounded-xl text-base font-semibold shadow-md shadow-primary/20 gap-2 h-11 px-5" onClick={() => navigate('/login')}>
+            免费试用 <ArrowRight className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
     </header>
   );
@@ -223,8 +230,8 @@ export default function LandingPage() {
 
         <motion.div style={{ y: heroY, opacity: heroOpacity }} className="relative z-10 text-center px-4 max-w-5xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-            <Badge className="rounded-full px-4 py-1.5 text-xs bg-primary/10 text-primary border-primary/20 mb-6 gap-2 inline-flex">
-              <Sparkles className="w-3 h-3" /> AI 驱动的新一代运营工具
+            <Badge className="rounded-full px-4 py-1.5 text-xs md:text-sm bg-primary/10 text-primary border-primary/20 mb-6 gap-2 inline-flex">
+              <Sparkles className="w-3.5 h-3.5" /> AI 驱动的新一代运营工具
             </Badge>
           </motion.div>
 
@@ -234,11 +241,11 @@ export default function LandingPage() {
             transition={{ duration: 0.7, delay: 0.1 }}
             className="text-4xl md:text-6xl lg:text-7xl font-black tracking-tight leading-tight text-balance"
           >
-            让每次拜访<br />
+            让每次访问<br />
             <span className="relative">
               <span className="bg-gradient-to-r from-primary via-primary to-accent bg-clip-text text-transparent">精准高效</span>
               <motion.div
-                className="absolute -bottom-1 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent rounded-full"
+                className="absolute -bottom-1 left-0 right-0 h-1.5 bg-gradient-to-r from-primary to-accent rounded-full"
                 initial={{ scaleX: 0 }}
                 animate={{ scaleX: 1 }}
                 transition={{ duration: 0.8, delay: 0.8 }}
@@ -250,7 +257,7 @@ export default function LandingPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="mt-6 text-base md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed text-pretty"
+            className="mt-6 text-base md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed text-pretty"
           >
             美团阿波罗 AI 插件内嵌运营后台，AI 实时诊断商家数据、生成定制话术、预测签约概率，让 2,000+ 运营人员效率倍增。
           </motion.p>
@@ -259,12 +266,12 @@ export default function LandingPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center mt-10"
+            className="flex flex-col sm:flex-row gap-4 justify-center mt-12"
           >
             <Button size="lg" className="rounded-xl h-16 px-8 text-base shadow-xl shadow-primary/25 gap-2.5 font-semibold" onClick={() => navigate('/login')}>
               <Bot className="w-5 h-5" /> 立即免费体验
             </Button>
-            <Button size="lg" variant="outline" className="rounded-xl h-16 px-8 text-base gap-2.5" onClick={() => navigate('/')}>
+            <Button size="lg" variant="outline" className="rounded-xl h-16 px-8 text-base gap-2.5" onClick={() => navigate('/dashboard')}>
               <Play className="w-4 h-4" /> 查看演示
             </Button>
           </motion.div>
@@ -391,7 +398,7 @@ export default function LandingPage() {
 
       {/* ── Pricing ── */}
       <section id="pricing" className="py-24 px-4 bg-muted/20 border-y border-border">
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -401,7 +408,7 @@ export default function LandingPage() {
             <Badge variant="outline" className="rounded-full px-4 py-1 text-xs mb-4">定价方案</Badge>
             <h2 className="text-3xl md:text-4xl font-black tracking-tight text-balance">选择适合您的方案</h2>
           </motion.div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 items-stretch">
             {plans.map((plan, i) => (
               <motion.div
                 key={plan.name}
@@ -475,7 +482,7 @@ export default function LandingPage() {
             <Button size="lg" className="rounded-xl px-10 h-16 text-base shadow-xl shadow-primary/25 gap-2 font-semibold" onClick={() => navigate('/login')}>
               免费开始使用 <ArrowRight className="w-4 h-4" />
             </Button>
-            <Button size="lg" variant="outline" className="rounded-xl px-8 h-16 text-base gap-2" onClick={() => navigate('/')}>
+            <Button size="lg" variant="outline" className="rounded-xl px-8 h-16 text-base gap-2" onClick={() => navigate('/dashboard')}>
               进入工作台 <ChevronRight className="w-4 h-4" />
             </Button>
           </div>
@@ -483,24 +490,24 @@ export default function LandingPage() {
       </section>
 
       {/* ── Footer ── */}
-      <footer className="border-t border-border py-12 px-4 bg-muted/20">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-            <div>
-              <div className="flex items-center gap-2 mb-3">
+      <footer className="border-t border-border py-16 px-4 bg-muted/20">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12 text-center justify-items-center">
+            <div className="flex flex-col items-center">
+              <div className="flex items-center gap-2 mb-4 justify-center">
                 <img src="/favicon.png" alt="美团阿波罗" className="w-7 h-7 object-contain" />
-                <span className="font-bold">美团阿波罗</span>
+                <span className="font-bold text-base">美团阿波罗</span>
               </div>
-              <p className="text-xs text-muted-foreground leading-relaxed text-pretty">AI 驱动的商家智能运营平台，让每次拜访更精准、更高效。</p>
+              <p className="text-xs text-muted-foreground leading-relaxed max-w-xs">AI 驱动的商家智能运营 platform，让每次访问更精准、更高效。</p>
             </div>
             {[
               { title: '产品', items: ['功能介绍', '价格方案', '更新日志', 'API 文档'] },
               { title: '公司', items: ['关于我们', '加入团队', '合作伙伴', '媒体资料'] },
               { title: '支持', items: ['帮助中心', '联系客服', '用户协议', '隐私政策'] },
             ].map((col) => (
-              <div key={col.title}>
-                <p className="font-semibold text-sm mb-3">{col.title}</p>
-                <ul className="space-y-2">
+              <div key={col.title} className="flex flex-col items-center">
+                <p className="font-semibold text-sm mb-4 text-foreground">{col.title}</p>
+                <ul className="space-y-2.5">
                   {col.items.map((item) => (
                     <li key={item}><span className="text-xs text-muted-foreground hover:text-foreground cursor-pointer transition-colors">{item}</span></li>
                   ))}
@@ -508,7 +515,7 @@ export default function LandingPage() {
               </div>
             ))}
           </div>
-          <div className="border-t border-border pt-6 text-center">
+          <div className="border-t border-border pt-8 text-center">
             <p className="text-xs text-muted-foreground">© 2026 美团阿波罗商家智能运营 AI 平台 · 保留所有权利</p>
           </div>
         </div>

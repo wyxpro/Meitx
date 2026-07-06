@@ -23,7 +23,7 @@ export interface RouteConfig {
 export const routes: RouteConfig[] = [
   {
     name: '官网',
-    path: '/landing',
+    path: '/',
     element: <LandingPage />,
     public: true,
   },
@@ -35,7 +35,7 @@ export const routes: RouteConfig[] = [
   },
   {
     name: '工作台',
-    path: '/',
+    path: '/dashboard',
     element: <HomePage />,
     public: true,
   },

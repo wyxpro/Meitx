@@ -29,7 +29,7 @@ export default function LoginPage() {
     setLoading(false);
     if (error) { toast.error('登录失败：账号或密码错误'); return; }
     toast.success('登录成功，欢迎回来！');
-    navigate('/');
+    navigate('/dashboard');
   };
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -44,7 +44,7 @@ export default function LoginPage() {
     setLoading(false);
     if (error) { toast.error(`注册失败：${error.message}`); return; }
     toast.success('注册成功，正在登录...');
-    navigate('/');
+    navigate('/dashboard');
   };
 
   return (
@@ -56,7 +56,7 @@ export default function LoginPage() {
       </div>
 
       {/* 返回官网 */}
-      <Link to="/landing" className="absolute top-4 left-4 flex items-center gap-2 text-muted-foreground hover:text-foreground text-sm transition-colors">
+      <Link to="/" className="absolute top-4 left-4 flex items-center gap-2 text-muted-foreground hover:text-foreground text-sm transition-colors">
         <ArrowLeft className="w-4 h-4" />
         返回官网
       </Link>
@@ -73,16 +73,16 @@ export default function LoginPage() {
           <p className="text-muted-foreground text-sm mt-1">商家智能运营 AI 平台</p>
         </div>
 
-        <Card className="rounded-sm border-border shadow-sm">
+        <Card className="rounded-2xl border-border/80 shadow-xl shadow-black/5 bg-card/90 backdrop-blur-md">
           <CardHeader className="pb-4">
             <CardTitle className="text-lg">欢迎使用</CardTitle>
             <CardDescription>登录或注册以开始智能运营之旅</CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid grid-cols-2 w-full rounded-sm mb-6">
-                <TabsTrigger value="login" className="rounded-sm">登录</TabsTrigger>
-                <TabsTrigger value="register" className="rounded-sm">注册</TabsTrigger>
+              <TabsList className="grid grid-cols-2 w-full rounded-xl mb-6 p-1 bg-muted/60">
+                <TabsTrigger value="login" className="rounded-lg py-2">登录</TabsTrigger>
+                <TabsTrigger value="register" className="rounded-lg py-2">注册</TabsTrigger>
               </TabsList>
 
               {/* 登录 */}
@@ -94,7 +94,7 @@ export default function LoginPage() {
                       placeholder="请输入账号（字母/数字/下划线）"
                       value={loginForm.username}
                       onChange={(e) => setLoginForm(f => ({ ...f, username: e.target.value }))}
-                      className="rounded-sm"
+                      className="rounded-xl h-11 border-border/70 focus-visible:ring-primary"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -105,7 +105,7 @@ export default function LoginPage() {
                         placeholder="请输入密码"
                         value={loginForm.password}
                         onChange={(e) => setLoginForm(f => ({ ...f, password: e.target.value }))}
-                        className="rounded-sm pr-10"
+                        className="rounded-xl h-11 border-border/70 focus-visible:ring-primary pr-10"
                       />
                       <button
                         type="button"
@@ -116,7 +116,7 @@ export default function LoginPage() {
                       </button>
                     </div>
                   </div>
-                  <Button type="submit" className="w-full rounded-sm" disabled={loading}>
+                  <Button type="submit" className="w-full rounded-xl h-11 text-sm font-semibold shadow-md shadow-primary/10 hover:shadow-lg transition-all" disabled={loading}>
                     {loading ? '登录中...' : '立即登录'}
                   </Button>
                 </form>
@@ -131,7 +131,7 @@ export default function LoginPage() {
                       placeholder="字母、数字、下划线，3-20位"
                       value={regForm.username}
                       onChange={(e) => setRegForm(f => ({ ...f, username: e.target.value }))}
-                      className="rounded-sm"
+                      className="rounded-xl h-11 border-border/70 focus-visible:ring-primary"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -141,7 +141,7 @@ export default function LoginPage() {
                       placeholder="至少8位"
                       value={regForm.password}
                       onChange={(e) => setRegForm(f => ({ ...f, password: e.target.value }))}
-                      className="rounded-sm"
+                      className="rounded-xl h-11 border-border/70 focus-visible:ring-primary"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -151,7 +151,7 @@ export default function LoginPage() {
                       placeholder="再次输入密码"
                       value={regForm.confirm}
                       onChange={(e) => setRegForm(f => ({ ...f, confirm: e.target.value }))}
-                      className="rounded-sm"
+                      className="rounded-xl h-11 border-border/70 focus-visible:ring-primary"
                     />
                   </div>
                   <div className="flex items-start gap-2">
@@ -168,7 +168,7 @@ export default function LoginPage() {
                       <span className="text-primary mx-1 cursor-pointer hover:underline">《隐私政策》</span>
                     </label>
                   </div>
-                  <Button type="submit" className="w-full rounded-sm" disabled={loading}>
+                  <Button type="submit" className="w-full rounded-xl h-11 text-sm font-semibold shadow-md shadow-primary/10 hover:shadow-lg transition-all" disabled={loading}>
                     {loading ? '注册中...' : '立即注册'}
                   </Button>
                 </form>
@@ -185,8 +185,8 @@ export default function LoginPage() {
           </div>
           <Button
             variant="outline"
-            className="w-full rounded-sm gap-2 text-sm"
-            onClick={() => navigate('/')}
+            className="w-full rounded-xl h-11 gap-2 text-sm font-semibold border-border/80 hover:bg-muted/50 transition-all"
+            onClick={() => navigate('/dashboard')}
           >
             <User className="w-4 h-4" /> 游客一键体验
           </Button>

@@ -102,7 +102,7 @@ export function FloatingAIAssistant() {
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<TabKey>('数据');
 
-  const hidden = ['/landing', '/login'].includes(location.pathname);
+  const hidden = ['/', '/login'].includes(location.pathname);
   if (hidden) return null;
 
   return (

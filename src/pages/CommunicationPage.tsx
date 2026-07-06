@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useCallback } from 'react';
+import { useState, useMemo, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,12 +17,20 @@ import {
   Pencil, Trash2, AlignLeft, Quote,
   Mic, ImageIcon, Paperclip, SendHorizonal, ChevronRight, Sparkles,
   BookOpen, MapPin, Utensils, Store, BarChart2, Zap, X, FileText, Play, Pause, Square,
-  Brain, Package,
+  Brain, Package, Check,
 } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { toast } from 'sonner';
 import { format, subDays, subHours } from 'date-fns';
 import { streamChatCompletions } from '@/services/ai/deepseek';
+import {
+  getStoredCommRecords,
+  saveStoredCommRecords,
+  getStoredFollowUps,
+  saveStoredFollowUps,
+  isThisMonth,
+  isLastMonth
+} from '@/services/mockData';
 
 interface CommRecord {
   id: string;
@@ -683,7 +691,7 @@ function KangarooAdvisor() {
 }
 
 export default function CommunicationPage() {
-  const [records, setRecords] = useState<CommRecord[]>(() => genMockComms());
+  const [records, setRecords] = useState<CommRecord[]>(() => getStoredCommRecords());
   const [keyword, setKeyword]   = useState('');
   const [channel, setChannel]   = useState('all');
   const [result,  setResult]    = useState('all');
@@ -694,11 +702,20 @@ export default function CommunicationPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [form, setForm]         = useState(EMPTY_FORM);
 
-  const [followUps, setFollowUps] = useState<FollowUpItem[]>(genInitialFollowUps);
+  const [followUps, setFollowUps] = useState<FollowUpItem[]>(() => getStoredFollowUps());
   const [fuAddOpen, setFuAddOpen] = useState(false);
   const [fuForm, setFuForm]       = useState({ name: '', time: '', priority: 'medium', reason: '' });
   const [fuDeleteId, setFuDeleteId] = useState<string | null>(null);
   const [fuEditTarget, setFuEditTarget] = useState<FollowUpItem | null>(null);
+
+  // Sync state back to localStorage
+  useEffect(() => {
+    saveStoredCommRecords(records);
+  }, [records]);
+
+  useEffect(() => {
+    saveStoredFollowUps(followUps);
+  }, [followUps]);
 
   const filtered = useMemo(() => records.filter(r => {
     if (keyword && !r.merchant_name.includes(keyword) && !r.content.includes(keyword)) return false;
@@ -708,6 +725,31 @@ export default function CommunicationPage() {
   }), [records, keyword, channel, result]);
 
   const pendingFollowUps = followUps.filter(f => !f.done);
+
+  const computedStatCards = useMemo(() => {
+    const thisMonthComm = records.filter(r => isThisMonth(r.contact_time)).length;
+    const lastMonthComm = records.filter(r => isLastMonth(r.contact_time)).length;
+    const commDiff = thisMonthComm - lastMonthComm;
+    const commGrowth = lastMonthComm > 0 ? (commDiff / lastMonthComm) * 100 : 0;
+    const commGrowthSign = commGrowth >= 0 ? '+' : '';
+    const commSub = lastMonthComm > 0 ? `较上月 ${commGrowthSign}${commGrowth.toFixed(0)}%` : '较上月 +0%';
+
+    const connectedRecords = records.filter(r => r.result !== 'no_answer' && isThisMonth(r.contact_time));
+    const connectionRate = thisMonthComm > 0 ? (connectedRecords.length / thisMonthComm) * 100 : 0;
+
+    const thisMonthSigned = records.filter(r => r.result === 'signed' && isThisMonth(r.contact_time)).length;
+    const signedRate = thisMonthComm > 0 ? (thisMonthSigned / thisMonthComm) * 100 : 0;
+
+    const pendingCount = followUps.filter(f => !f.done).length;
+    const highPriorityCount = followUps.filter(f => !f.done && f.priority === 'high').length;
+
+    return [
+      { label: '本月沟通', value: String(thisMonthComm), sub: commSub, up: commGrowth >= 0 },
+      { label: '接通率',   value: `${connectionRate.toFixed(0)}%`, sub: '行业均值 68%', up: connectionRate >= 68 },
+      { label: '本月签约', value: String(thisMonthSigned),  sub: `转化率 ${signedRate.toFixed(1)}%`, up: true },
+      { label: '待跟进',   value: String(pendingCount),  sub: `高优先级 ${highPriorityCount}`, up: false },
+    ];
+  }, [records, followUps]);
 
   // ── 沟通记录 CRUD ──
   const handleAddRecord = () => {
@@ -859,7 +901,7 @@ export default function CommunicationPage() {
           <TabsContent value="records" className="space-y-4">
             {/* KPI 卡片 */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-              {statCards.map((c, i) => (
+              {computedStatCards.map((c, i) => (
                 <motion.div key={c.label} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}>
                   <Card className="rounded-sm border-border shadow-sm">
                     <CardContent className="p-3 md:p-4">

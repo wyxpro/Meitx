@@ -4,13 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Sparkles, Filter, X, Bot, BarChart3, MessageSquare, Calendar, Brain, Package, TrendingUp } from 'lucide-react';
+import { Sparkles, Filter, X, Bot, BarChart3, MessageSquare, Brain, Package, TrendingUp } from 'lucide-react';
 import { MerchantDataCard } from './MerchantDataCard';
 import { PainPointCard } from './PainPointCard';
 import { PackageRecommendation } from './PackageRecommendation';
 import { AcceptancePredictionCard } from './AcceptancePrediction';
 import { ScriptGenerator } from './ScriptGenerator';
-import { SeasonalInsightCard } from './SeasonalInsight';
 import type { Merchant } from '@/types/merchant';
 
 interface AIPluginPanelProps {
@@ -46,7 +45,7 @@ export function AIPluginPanel({ merchant, loading = false, isMobile = false, onC
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 min-h-0 flex flex-col">
-        <TabsList className="mx-2 mt-3 grid grid-cols-6 h-9 rounded-sm shrink-0">
+        <TabsList className="mx-2 mt-3 grid grid-cols-5 h-9 rounded-sm shrink-0">
           <TabsTrigger value="overview" className="text-[10px] md:text-xs px-0.5 rounded-sm flex items-center gap-0.5 justify-center" title="数据">
             <BarChart3 className="w-3 h-3 shrink-0" />
             <span>数据</span>
@@ -59,17 +58,13 @@ export function AIPluginPanel({ merchant, loading = false, isMobile = false, onC
             <Package className="w-3 h-3 shrink-0" />
             <span>套餐</span>
           </TabsTrigger>
-          <TabsTrigger value="prediction" className="text-[10px] md:text-xs px-0.5 rounded-sm flex items-center gap-0.5 justify-center" title="接受度预测">
-            <TrendingUp className="w-3 h-3 shrink-0" />
-            <span>接受度</span>
-          </TabsTrigger>
           <TabsTrigger value="script" className="text-[10px] md:text-xs px-0.5 rounded-sm flex items-center gap-0.5 justify-center" title="话术">
             <MessageSquare className="w-3 h-3 shrink-0" />
             <span>话术</span>
           </TabsTrigger>
-          <TabsTrigger value="season" className="text-[10px] md:text-xs px-0.5 rounded-sm flex items-center gap-0.5 justify-center" title="季节">
-            <Calendar className="w-3 h-3 shrink-0" />
-            <span>季节</span>
+          <TabsTrigger value="prediction" className="text-[10px] md:text-xs px-0.5 rounded-sm flex items-center gap-0.5 justify-center" title="接受度预测">
+            <TrendingUp className="w-3 h-3 shrink-0" />
+            <span>接受度</span>
           </TabsTrigger>
         </TabsList>
 
@@ -95,18 +90,13 @@ export function AIPluginPanel({ merchant, loading = false, isMobile = false, onC
                   <PackageRecommendation packages={merchant.recommendedPackages} />
                 </TabsContent>
 
-                <TabsContent value="prediction" className="mt-0 space-y-4">
-                  <AcceptancePredictionCard prediction={merchant.acceptancePrediction} />
-                </TabsContent>
-
                 <TabsContent value="script" className="mt-0 space-y-4">
                   <MerchantDataCard merchant={merchant} compact />
                   <ScriptGenerator merchant={merchant} />
                 </TabsContent>
 
-                <TabsContent value="season" className="mt-0 space-y-4">
-                  <SeasonalInsightCard insight={merchant.seasonalInsight} />
-                  <MerchantDataCard merchant={merchant} compact />
+                <TabsContent value="prediction" className="mt-0 space-y-4">
+                  <AcceptancePredictionCard prediction={merchant.acceptancePrediction} />
                 </TabsContent>
               </>
             )}

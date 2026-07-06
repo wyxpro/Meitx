@@ -32,7 +32,6 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { icon: LayoutDashboard, label: '工作台',   path: '/dashboard' },
-  { icon: Store,           label: '商家管理', path: '/merchants' },
   { icon: Phone,           label: '沟通记录', path: '/communications' },
   { icon: BarChart3,       label: '数据统计', path: '/data-center' },
   { icon: Settings,        label: '个人中心', path: '/settings' },

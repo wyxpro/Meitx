@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import HomePage from './pages/HomePage';
 import MerchantDetailPage from './pages/MerchantDetailPage';
 import MerchantFilterPage from './pages/MerchantFilterPage';
 import MerchantManagementPage from './pages/MerchantManagementPage';
@@ -36,12 +35,6 @@ export const routes: RouteConfig[] = [
   {
     name: '工作台',
     path: '/dashboard',
-    element: <HomePage />,
-    public: true,
-  },
-  {
-    name: '商家管理',
-    path: '/merchants',
     element: <MerchantManagementPage />,
     public: true,
   },

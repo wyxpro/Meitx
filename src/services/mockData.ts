@@ -368,3 +368,94 @@ export function filterMockMerchantList(
     return true;
   });
 }
+
+// LocalStorage helpers for synchronization
+export function getStoredMerchants(): MerchantListItem[] {
+  if (typeof window === 'undefined') return [];
+  const stored = localStorage.getItem('meitx_merchants');
+  if (stored) {
+    try {
+      return JSON.parse(stored);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+  const defaults = getMockMerchantList();
+  localStorage.setItem('meitx_merchants', JSON.stringify(defaults));
+  return defaults;
+}
+
+export function saveStoredMerchants(merchants: MerchantListItem[]): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem('meitx_merchants', JSON.stringify(merchants));
+}
+
+export function getStoredCommRecords(): any[] {
+  if (typeof window === 'undefined') return [];
+  const stored = localStorage.getItem('meitx_comm_records');
+  if (stored) {
+    try {
+      return JSON.parse(stored);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+  const defaults = [
+    { id: 'comm-0', merchant_name: '四季香餐厅', channel: 'phone', duration_minutes: 15, content: '介绍了曝光提升计划，老板表示有意向，约下周再谈', result: 'connected', contact_time: new Date().toISOString(), operator: '王小明' },
+    { id: 'comm-1', merchant_name: '美丽时光美发', channel: 'wechat', duration_minutes: null, content: '电话告知最新活动方案，对方未接听', result: 'no_answer', contact_time: new Date(Date.now() - 3600000 * 2).toISOString(), operator: '李晓红' },
+    { id: 'comm-2', merchant_name: '欢乐星球亲子乐园', channel: 'face_to_face', duration_minutes: null, content: '面谈深入了解暑期需求，签署了试用协议', result: 'signed', contact_time: new Date(Date.now() - 3600000 * 5).toISOString(), operator: '张伟' },
+    { id: 'comm-3', merchant_name: '活力健身俱乐部', channel: 'wechat', duration_minutes: null, content: '微信发送了数据报告，对方已查看', result: 'follow_up', contact_time: new Date(Date.now() - 86400000).toISOString(), operator: '陈静' },
+    { id: 'comm-4', merchant_name: '悦享生活洗护服务', channel: 'phone', duration_minutes: 8, content: '沟通套餐价格，老板对 ROI 有疑虑，已发送案例', result: 'rejected', contact_time: new Date(Date.now() - 86400000 * 2).toISOString(), operator: '王小明' },
+  ];
+  localStorage.setItem('meitx_comm_records', JSON.stringify(defaults));
+  return defaults;
+}
+
+export function saveStoredCommRecords(records: any[]): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem('meitx_comm_records', JSON.stringify(records));
+}
+
+export function getStoredFollowUps(): any[] {
+  if (typeof window === 'undefined') return [];
+  const stored = localStorage.getItem('meitx_follow_ups');
+  if (stored) {
+    try {
+      return JSON.parse(stored);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+  const defaults = [
+    { id: 'fu-1', name: '四季香餐厅',   time: '今日 15:00', priority: 'high',   reason: '昨日意向较强，需确认签约',    done: false },
+    { id: 'fu-2', name: '美丽时光美发', time: '明日 10:00', priority: 'high',   reason: '对曝光套餐有疑问',            done: false },
+    { id: 'fu-3', name: '活力健身俱乐部',     time: '后天 14:00', priority: 'medium', reason: '跟进暑期活动方案',            done: false },
+    { id: 'fu-4', name: '春林休闲棋牌茶馆',     time: '3天后',      priority: 'low',    reason: '常规季度回访',                done: false },
+  ];
+  localStorage.setItem('meitx_follow_ups', JSON.stringify(defaults));
+  return defaults;
+}
+
+export function saveStoredFollowUps(followUps: any[]): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem('meitx_follow_ups', JSON.stringify(followUps));
+}
+
+export function isThisMonth(dateStr: string | Date): boolean {
+  const date = new Date(dateStr);
+  const now = new Date();
+  return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth();
+}
+
+export function isLastMonth(dateStr: string | Date): boolean {
+  const date = new Date(dateStr);
+  const now = new Date();
+  let targetYear = now.getFullYear();
+  let targetMonth = now.getMonth() - 1;
+  if (targetMonth < 0) {
+    targetMonth = 11;
+    targetYear -= 1;
+  }
+  return date.getFullYear() === targetYear && date.getMonth() === targetMonth;
+}
+

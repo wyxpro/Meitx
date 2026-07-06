@@ -8,7 +8,12 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Search, TrendingUp, TrendingDown, Filter, ChevronRight, Phone, FileCheck, MessageSquare, Users } from 'lucide-react';
-import { getMockMerchantList } from '@/services/mockData';
+import {
+  getStoredMerchants,
+  getStoredCommRecords,
+  getStoredFollowUps,
+  isThisMonth
+} from '@/services/mockData';
 import type { MerchantListItem } from '@/types/merchant';
 
 const levelColors: Record<string, string> = {
@@ -21,24 +26,36 @@ const levelLabels: Record<string, string> = { high: '高意向', medium: '中意
 export default function HomePage() {
   const navigate = useNavigate();
   const [keyword, setKeyword] = useState('');
-  const [merchants] = useState<MerchantListItem[]>(() => getMockMerchantList({ count: 12 }));
+  const [merchants] = useState<MerchantListItem[]>(() => getStoredMerchants());
 
   const filteredMerchants = useMemo(() => {
     if (!keyword.trim()) return merchants;
     return merchants.filter(m => m.name.includes(keyword) || m.category.includes(keyword));
   }, [merchants, keyword]);
 
+  const computedKpis = useMemo(() => {
+    const records = getStoredCommRecords();
+    const followUps = getStoredFollowUps();
+
+    const todayFollowUp = followUps.filter(f => !f.done && f.time.includes('今日')).length;
+    const monthlySigned = records.filter(r => r.result === 'signed' && isThisMonth(r.contact_time)).length;
+    const pendingComm = followUps.filter(f => !f.done).length;
+    const highPotential = merchants.filter(m => m.potentialScore >= 80).length;
+
+    return [
+      { label: '今日跟进商家', value: String(todayFollowUp), change: '+12%', up: true, icon: Phone, borderClass: 'border-t-amber-500', iconClass: 'text-amber-600 bg-amber-500/10', bg: 'from-amber-500/8 to-amber-500/3' },
+      { label: '本月签约数', value: String(monthlySigned), change: '+33%', up: true, icon: FileCheck, borderClass: 'border-t-emerald-500', iconClass: 'text-emerald-600 bg-emerald-500/10', bg: 'from-emerald-500/8 to-emerald-500/3' },
+      { label: '待处理沟通', value: String(pendingComm), change: '-5%', up: false, icon: MessageSquare, borderClass: 'border-t-rose-500', iconClass: 'text-rose-600 bg-rose-500/10', bg: 'from-rose-500/8 to-rose-500/3' },
+      { label: '高潜商家池', value: String(highPotential), change: '+8%', up: true, icon: Users, borderClass: 'border-t-blue-500', iconClass: 'text-blue-600 bg-blue-500/10', bg: 'from-blue-500/8 to-blue-500/3' },
+    ];
+  }, [merchants]);
+
   return (
     <AppLayout title="商家工作台">
       <div className="p-4 md:p-6 max-w-6xl mx-auto space-y-6">
         {/* KPI 概览 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-          {[
-            { label: '今日跟进商家', value: '23', change: '+12%', up: true, icon: Phone, borderClass: 'border-t-amber-500', iconClass: 'text-amber-600 bg-amber-500/10', bg: 'from-amber-500/8 to-amber-500/3' },
-            { label: '本月签约数', value: '8', change: '+33%', up: true, icon: FileCheck, borderClass: 'border-t-emerald-500', iconClass: 'text-emerald-600 bg-emerald-500/10', bg: 'from-emerald-500/8 to-emerald-500/3' },
-            { label: '待处理沟通', value: '15', change: '-5%', up: false, icon: MessageSquare, borderClass: 'border-t-rose-500', iconClass: 'text-rose-600 bg-rose-500/10', bg: 'from-rose-500/8 to-rose-500/3' },
-            { label: '高潜商家池', value: '128', change: '+8%', up: true, icon: Users, borderClass: 'border-t-blue-500', iconClass: 'text-blue-600 bg-blue-500/10', bg: 'from-blue-500/8 to-blue-500/3' },
-          ].map((item, i) => {
+          {computedKpis.map((item, i) => {
             const Icon = item.icon;
             return (
               <motion.div key={item.label} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}>
@@ -94,7 +111,7 @@ export default function HomePage() {
                   <CardContent className="p-3 md:p-4">
                     <div className="flex items-center gap-3">
                       {/* 头像 */}
-                      <div className="w-10 h-10 rounded-md overflow-hidden bg-muted shrink-0 border border-border">
+                      <div className="w-10 h-10 rounded-xl overflow-hidden bg-muted shrink-0 border border-border">
                         {merchant.avatarUrl ? (
                           <img src={merchant.avatarUrl} alt={merchant.name} className="w-full h-full object-cover" />
                         ) : (

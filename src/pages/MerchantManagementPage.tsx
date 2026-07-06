@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { AppLayout } from '@/components/layouts/AppLayout';
@@ -12,20 +12,24 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
-import { Search, Plus, Download, TrendingUp, TrendingDown, Star, Phone, Eye, ChevronRight, Pencil, Trash2, Upload } from 'lucide-react';
-import { getMockMerchantList, filterMockMerchantList, getRealAvatarUrl } from '@/services/mockData';
+import { Search, Plus, Download, TrendingUp, TrendingDown, Star, Phone, Eye, ChevronRight, Pencil, Trash2, Upload, MessageSquare, Users, FileCheck } from 'lucide-react';
+import {
+  getMockMerchantList,
+  filterMockMerchantList,
+  getRealAvatarUrl,
+  getStoredMerchants,
+  saveStoredMerchants,
+  getStoredCommRecords,
+  getStoredFollowUps,
+  isThisMonth
+} from '@/services/mockData';
 import { CATEGORIES, ACCEPTANCE_LABELS } from '@/types/merchant';
 import type { MerchantListItem } from '@/types/merchant';
 import { exportMerchantsToExcel, ExcelImportButton } from '@/lib/excel';
 import type { MerchantExcelRow } from '@/lib/excel';
 import { toast } from 'sonner';
 
-const statCards = [
-  { label: '商家总数', value: '1,280', change: '+5.2%', up: true },
-  { label: '本月新增', value: '48', change: '+18%', up: true },
-  { label: '活跃商家', value: '892', change: '-2.1%', up: false },
-  { label: '高意向池', value: '234', change: '+12%', up: true },
-];
+
 
 const levelColors: Record<string, string> = {
   high: 'bg-success text-success-foreground',
@@ -47,7 +51,36 @@ export default function MerchantManagementPage() {
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
 
-  const [merchants, setMerchants] = useState<MerchantListItem[]>(() => getMockMerchantList({ count: 60 }));
+  const [merchants, setMerchants] = useState<MerchantListItem[]>(() => getStoredMerchants());
+
+  // Sync state back to localStorage
+  useEffect(() => {
+    saveStoredMerchants(merchants);
+  }, [merchants]);
+
+  const computedCards = useMemo(() => {
+    const records = getStoredCommRecords();
+    const followUps = getStoredFollowUps();
+
+    // 1. 今日跟进商家
+    const todayFollowUp = followUps.filter(f => !f.done && f.time.includes('今日')).length;
+
+    // 2. 本月签约数
+    const monthlySigned = records.filter(r => r.result === 'signed' && isThisMonth(r.contact_time)).length;
+
+    // 3. 待处理沟通
+    const pendingComm = followUps.filter(f => !f.done).length;
+
+    // 4. 高潜商家池
+    const highPotential = merchants.filter(m => m.potentialScore >= 80).length;
+
+    return [
+      { label: '今日跟进商家', value: String(todayFollowUp), change: '+12%', up: true, icon: Phone, borderClass: 'border-t-amber-500', iconClass: 'text-amber-600 bg-amber-500/10', bg: 'from-amber-500/8 to-amber-500/3' },
+      { label: '本月签约数', value: String(monthlySigned), change: '+33%', up: true, icon: FileCheck, borderClass: 'border-t-emerald-500', iconClass: 'text-emerald-600 bg-emerald-500/10', bg: 'from-emerald-500/8 to-emerald-500/3' },
+      { label: '待处理沟通', value: String(pendingComm), change: '-5%', up: false, icon: MessageSquare, borderClass: 'border-t-rose-500', iconClass: 'text-rose-600 bg-rose-500/10', bg: 'from-rose-500/8 to-rose-500/3' },
+      { label: '高潜商家池', value: String(highPotential), change: '+8%', up: true, icon: Users, borderClass: 'border-t-blue-500', iconClass: 'text-blue-600 bg-blue-500/10', bg: 'from-blue-500/8 to-blue-500/3' },
+    ];
+  }, [merchants]);
 
   const filtered = useMemo(() =>
     filterMockMerchantList(merchants, {
@@ -139,7 +172,7 @@ export default function MerchantManagementPage() {
   };
 
   return (
-    <AppLayout title="商家管理" actions={
+    <AppLayout title="工作台" actions={
       <div className="flex items-center gap-2">
         <ExcelImportButton
           onImport={handleImport}
@@ -190,23 +223,29 @@ export default function MerchantManagementPage() {
         </Dialog>
 
         {/* KPI Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {statCards.map((card, i) => (
-            <motion.div key={card.label} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}>
-              <Card className="rounded-sm border-border shadow-sm">
-                <CardContent className="p-3 md:p-4">
-                  <p className="text-[10px] md:text-xs text-muted-foreground">{card.label}</p>
-                  <div className="flex items-end justify-between mt-1">
-                    <p className="text-xl md:text-2xl font-bold tracking-tight">{card.value}</p>
-                    <span className={`text-[10px] flex items-center gap-0.5 ${card.up ? 'text-success' : 'text-destructive'}`}>
-                      {card.up ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                      {card.change}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+          {computedCards.map((item, i) => {
+            const Icon = item.icon;
+            return (
+              <motion.div key={item.label} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}>
+                <Card className={`rounded-xl border-border shadow-sm border-t-4 ${item.borderClass} bg-gradient-to-br ${item.bg} overflow-hidden hover:shadow-md transition-shadow`}>
+                  <CardContent className="p-3 md:p-4">
+                    <div className="flex items-start justify-between">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${item.iconClass}`}>
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <span className={`text-[10px] md:text-xs flex items-center gap-0.5 px-1.5 py-0.5 rounded-full ${item.up ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'}`}>
+                        {item.up ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                        {item.change}
+                      </span>
+                    </div>
+                    <p className="text-2xl md:text-3xl font-black tracking-tight mt-2">{item.value}</p>
+                    <p className="text-[10px] md:text-xs text-muted-foreground mt-0.5">{item.label}</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            );
+          })}
         </div>
 
         {/* 筛选栏 */}
@@ -266,7 +305,7 @@ export default function MerchantManagementPage() {
                 >
                   <TableCell className="whitespace-nowrap">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-md overflow-hidden border border-border shrink-0 bg-muted">
+                      <div className="w-8 h-8 rounded-xl overflow-hidden border border-border shrink-0 bg-muted">
                         {m.avatarUrl
                           ? <img src={m.avatarUrl} alt={m.name} className="w-full h-full object-cover" />
                           : <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-primary">{m.name.slice(0, 1)}</div>
@@ -322,7 +361,7 @@ export default function MerchantManagementPage() {
             <Card key={m.id} className="rounded-xl border-border shadow-sm cursor-pointer hover:border-primary/40 transition-colors" onClick={() => navigate(`/merchant/${m.id}`)}>
               <CardContent className="p-3">
                 <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-md overflow-hidden border border-border shrink-0 bg-muted">
+                  <div className="w-10 h-10 rounded-xl overflow-hidden border border-border shrink-0 bg-muted">
                     {m.avatarUrl
                       ? <img src={m.avatarUrl} alt={m.name} className="w-full h-full object-cover" />
                       : <div className="w-full h-full flex items-center justify-center text-sm font-bold text-primary">{m.name.slice(0, 1)}</div>

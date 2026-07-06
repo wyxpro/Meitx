@@ -16,7 +16,7 @@ const features = [
   { icon: BarChart3, title: '数据驱动决策', desc: '多维度数据大盘，雷达图综合评估，趋势预测助您提前布局', color: 'from-emerald-500/20 to-emerald-600/5', iconBg: 'bg-emerald-500/10 text-emerald-500' },
   { icon: Phone, title: '智能话术生成', desc: '根据商家画像动态生成个性化沟通话术，支持电话/微信/面谈三种场景', color: 'from-amber-500/20 to-amber-600/5', iconBg: 'bg-amber-500/10 text-amber-500' },
   { icon: Target, title: '精准套餐推荐', desc: '结合季节、品类、历史数据，AI 推算最高 ROI 方案组合', color: 'from-violet-500/20 to-violet-600/5', iconBg: 'bg-violet-500/10 text-violet-500' },
-  { icon: TrendingUp, title: '签约预测引擎', desc: '基于商家行为轨迹，提前预测接受概率，让每次访问都有的放矢', color: 'from-rose-500/20 to-rose-600/5', iconBg: 'bg-rose-500/10 text-rose-500' },
+  { icon: TrendingUp, title: '签约预测引擎', desc: '基于商家行为轨迹，提前预测接受概率，让每次运营都有的放矢', color: 'from-rose-500/20 to-rose-600/5', iconBg: 'bg-rose-500/10 text-rose-500' },
   { icon: MessageSquare, title: '全链路跟踪', desc: '沟通记录、跟进提醒、话术反馈闭环，让商机不再流失', color: 'from-cyan-500/20 to-cyan-600/5', iconBg: 'bg-cyan-500/10 text-cyan-500' },
 ];
 
@@ -241,7 +241,7 @@ export default function LandingPage() {
             transition={{ duration: 0.7, delay: 0.1 }}
             className="text-4xl md:text-6xl lg:text-7xl font-black tracking-tight leading-tight text-balance"
           >
-            让每次访问<br />
+            让每次运营<br />
             <span className="relative">
               <span className="bg-gradient-to-r from-primary via-primary to-accent bg-clip-text text-transparent">精准高效</span>
               <motion.div
@@ -328,16 +328,16 @@ export default function LandingPage() {
             <h2 className="text-3xl md:text-4xl font-black tracking-tight text-balance">AI 赋能每个运营环节</h2>
             <p className="mt-4 text-muted-foreground max-w-xl mx-auto text-pretty">六大核心能力，覆盖从商机发现到签约维护的全链路</p>
           </motion.div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
             {features.map((f, i) => (
               <FloatingCard3D key={f.title} delay={i * 0.08}>
                 <Card className={`h-full rounded-2xl border-border/50 shadow-sm hover:shadow-xl transition-shadow duration-300 bg-gradient-to-br ${f.color} backdrop-blur-sm overflow-hidden`}>
-                  <CardContent className="p-6">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${f.iconBg}`}>
-                      <f.icon className="w-5.5 h-5.5" />
+                  <CardContent className="p-3.5 md:p-6">
+                    <div className={`w-9 h-9 md:w-12 md:h-12 rounded-xl flex items-center justify-center mb-3 md:mb-4 ${f.iconBg}`}>
+                      <f.icon className="w-4.5 h-4.5 md:w-5.5 md:h-5.5" />
                     </div>
-                    <h3 className="font-bold text-base mb-2">{f.title}</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed text-pretty">{f.desc}</p>
+                    <h3 className="font-bold text-xs md:text-base mb-1 md:mb-2">{f.title}</h3>
+                    <p className="text-[10px] md:text-sm text-muted-foreground leading-relaxed text-pretty">{f.desc}</p>
                   </CardContent>
                 </Card>
               </FloatingCard3D>
@@ -408,7 +408,7 @@ export default function LandingPage() {
             <Badge variant="outline" className="rounded-full px-4 py-1 text-xs mb-4">定价方案</Badge>
             <h2 className="text-3xl md:text-4xl font-black tracking-tight text-balance">选择适合您的方案</h2>
           </motion.div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 items-stretch">
+          <div className="flex overflow-x-auto snap-x snap-mandatory pb-6 md:grid md:grid-cols-2 lg:grid-cols-4 gap-5 items-stretch -mx-4 px-4 md:mx-0 md:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {plans.map((plan, i) => (
               <motion.div
                 key={plan.name}
@@ -416,38 +416,38 @@ export default function LandingPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: i * 0.12 }}
-                className="relative flex flex-col"
+                className="relative flex flex-col shrink-0 w-[80vw] sm:w-[50vw] md:w-auto snap-center"
               >
                 {plan.badge && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
-                    <Badge className="rounded-full text-[10px] px-3 bg-primary text-primary-foreground shadow-lg shadow-primary/20">{plan.badge}</Badge>
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
+                    <Badge className="rounded-full text-[9px] md:text-[10px] px-3 bg-primary text-primary-foreground shadow-lg shadow-primary/20">{plan.badge}</Badge>
                   </div>
                 )}
-                <Card className={`flex-1 rounded-2xl transition-all duration-300 ${plan.primary ? 'border-primary shadow-xl shadow-primary/15 scale-[1.02]' : 'border-border shadow-sm hover:shadow-md'}`}>
-                  <CardContent className="p-7 flex flex-col h-full">
-                    <div className="mb-6">
-                      <h3 className="font-bold text-base">{plan.name}</h3>
+                <Card className={`flex-1 rounded-2xl transition-all duration-300 ${plan.primary ? 'border-primary shadow-xl shadow-primary/15 scale-[1.01] md:scale-[1.02]' : 'border-border shadow-sm hover:shadow-md'}`}>
+                  <CardContent className="p-6 md:p-7 flex flex-col h-full">
+                    <div className="mb-5 md:mb-6">
+                      <h3 className="font-bold text-sm md:text-base">{plan.name}</h3>
                       <div className="flex items-baseline gap-1 mt-2">
-                        <span className="text-4xl font-black text-primary">{plan.price}</span>
-                        {plan.period && <span className="text-sm text-muted-foreground">{plan.period}</span>}
+                        <span className="text-3xl md:text-4xl font-black text-primary">{plan.price}</span>
+                        {plan.period && <span className="text-xs md:text-sm text-muted-foreground">{plan.period}</span>}
                       </div>
                     </div>
-                    <ul className="space-y-3 flex-1">
+                    <ul className="space-y-2.5 md:space-y-3 flex-1">
                       {plan.features.map((f) => (
-                        <li key={f} className="flex items-start gap-2.5 text-sm">
-                          <div className="w-4 h-4 rounded-full bg-success/15 flex items-center justify-center shrink-0 mt-0.5">
-                            <Check className="w-2.5 h-2.5 text-success" />
+                        <li key={f} className="flex items-start gap-2 md:gap-2.5 text-xs md:text-sm">
+                          <div className="w-3.5 h-3.5 md:w-4 md:h-4 rounded-full bg-success/15 flex items-center justify-center shrink-0 mt-0.5">
+                            <Check className="w-2 md:w-2.5 h-2 md:h-2.5 text-success" />
                           </div>
-                          <span>{f}</span>
+                          <span className="text-pretty">{f}</span>
                         </li>
                       ))}
                     </ul>
                     <Button
-                      className={`mt-8 w-full rounded-xl text-sm font-semibold h-11 ${plan.primary ? 'shadow-lg shadow-primary/20' : ''}`}
+                      className={`mt-6 md:mt-8 w-full rounded-xl text-xs md:text-sm font-semibold h-10 md:h-11 ${plan.primary ? 'shadow-lg shadow-primary/20' : ''}`}
                       variant={plan.primary ? 'default' : 'outline'}
                       onClick={() => navigate('/login')}
                     >
-                      {plan.cta} <ChevronRight className="w-4 h-4 ml-1" />
+                      {plan.cta} <ChevronRight className="w-3.5 h-3.5 md:w-4 md:h-4 ml-1" />
                     </Button>
                   </CardContent>
                 </Card>
@@ -490,33 +490,35 @@ export default function LandingPage() {
       </section>
 
       {/* ── Footer ── */}
-      <footer className="border-t border-border py-16 px-4 bg-muted/20">
+      <footer className="border-t border-border py-12 md:py-16 px-4 bg-muted/20">
         <div className="max-w-5xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12 text-center justify-items-center">
-            <div className="flex flex-col items-center">
-              <div className="flex items-center gap-2 mb-4 justify-center">
+          <div className="flex flex-col md:flex-row justify-between gap-8 mb-12 text-center md:text-left">
+            <div className="flex flex-col items-center md:items-start shrink-0">
+              <div className="flex items-center gap-2 mb-3 md:mb-4 justify-center md:justify-start">
                 <img src="/favicon.png" alt="美团阿波罗" className="w-7 h-7 object-contain" />
                 <span className="font-bold text-base">美团阿波罗</span>
               </div>
-              <p className="text-xs text-muted-foreground leading-relaxed max-w-xs">AI 驱动的商家智能运营 platform，让每次访问更精准、更高效。</p>
+              <p className="text-xs text-muted-foreground leading-relaxed max-w-xs">AI 驱动的商家智能运营 platform，让每次运营更精准、更高效。</p>
             </div>
-            {[
-              { title: '产品', items: ['功能介绍', '价格方案', '更新日志', 'API 文档'] },
-              { title: '公司', items: ['关于我们', '加入团队', '合作伙伴', '媒体资料'] },
-              { title: '支持', items: ['帮助中心', '联系客服', '用户协议', '隐私政策'] },
-            ].map((col) => (
-              <div key={col.title} className="flex flex-col items-center">
-                <p className="font-semibold text-sm mb-4 text-foreground">{col.title}</p>
-                <ul className="space-y-2.5">
-                  {col.items.map((item) => (
-                    <li key={item}><span className="text-xs text-muted-foreground hover:text-foreground cursor-pointer transition-colors">{item}</span></li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+            <div className="flex flex-row justify-between w-full md:w-auto md:gap-16 text-center md:text-left">
+              {[
+                { title: '产品', items: ['功能介绍', '价格方案', '更新日志', 'API 文档'] },
+                { title: '公司', items: ['关于我们', '加入团队', '合作伙伴', '媒体资料'] },
+                { title: '支持', items: ['帮助中心', '联系客服', '用户协议', '隐私政策'] },
+              ].map((col) => (
+                <div key={col.title} className="flex flex-col items-center md:items-start flex-1 md:flex-initial">
+                  <p className="font-semibold text-xs md:text-sm mb-3 md:mb-4 text-foreground">{col.title}</p>
+                  <ul className="space-y-2 md:space-y-2.5">
+                    {col.items.map((item) => (
+                      <li key={item}><span className="text-[10px] md:text-xs text-muted-foreground hover:text-foreground cursor-pointer transition-colors whitespace-nowrap">{item}</span></li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="border-t border-border pt-8 text-center">
-            <p className="text-xs text-muted-foreground">© 2026 美团阿波罗商家智能运营 AI 平台 · 保留所有权利</p>
+          <div className="border-t border-border pt-8 text-center flex justify-center">
+            <p className="text-[10px] md:text-xs text-muted-foreground whitespace-nowrap overflow-x-auto max-w-full px-4 scrollbar-none">© 2026 美团阿波罗商家智能运营 AI 平台 · 保留所有权利</p>
           </div>
         </div>
       </footer>

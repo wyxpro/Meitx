@@ -68,9 +68,7 @@ export default function LoginPage() {
         className="w-full max-w-[calc(100%-2rem)] md:max-w-md"
       >
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-sm bg-primary mb-4">
-            <Sparkles className="w-6 h-6 text-primary-foreground" />
-          </div>
+          <img src="/favicon.png" alt="美团阿波罗" className="w-12 h-12 object-contain mx-auto mb-4" />
           <h1 className="text-2xl font-bold">美团阿波罗</h1>
           <p className="text-muted-foreground text-sm mt-1">商家智能运营 AI 平台</p>
         </div>

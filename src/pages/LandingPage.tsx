@@ -164,9 +164,7 @@ function NavBar() {
   return (
     <header className={`fixed top-0 left-0 right-0 z-50 h-16 flex items-center justify-between px-6 md:px-12 transition-all duration-300 ${scrolled ? 'bg-background/90 backdrop-blur-xl border-b border-border shadow-sm' : 'bg-transparent'}`}>
       <Link to="/landing" className="flex items-center gap-2.5">
-        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-lg shadow-primary/30">
-          <Sparkles className="w-4 h-4 text-primary-foreground" />
-        </div>
+        <img src="/favicon.png" alt="美团阿波罗" className="w-8 h-8 object-contain" />
         <span className="font-bold text-base tracking-tight">美团阿波罗</span>
       </Link>
       <nav className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
@@ -465,9 +463,7 @@ export default function LandingPage() {
           transition={{ duration: 0.7 }}
           className="max-w-3xl mx-auto text-center"
         >
-          <div className="w-16 h-16 rounded-2xl bg-primary mx-auto flex items-center justify-center mb-6 shadow-xl shadow-primary/30">
-            <Sparkles className="w-8 h-8 text-primary-foreground" />
-          </div>
+          <img src="/favicon.png" alt="美团阿波罗" className="w-16 h-16 object-contain mx-auto mb-6" />
           <h2 className="text-3xl md:text-5xl font-black tracking-tight text-balance">
             现在就开始<br />
             <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">提升运营效率</span>
@@ -492,9 +488,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
-                  <Sparkles className="w-3.5 h-3.5 text-primary-foreground" />
-                </div>
+                <img src="/favicon.png" alt="美团阿波罗" className="w-7 h-7 object-contain" />
                 <span className="font-bold">美团阿波罗</span>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed text-pretty">AI 驱动的商家智能运营平台，让每次拜访更精准、更高效。</p>

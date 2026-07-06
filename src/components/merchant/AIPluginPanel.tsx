@@ -32,9 +32,7 @@ export function AIPluginPanel({ merchant, loading = false, isMobile = false, onC
     <div className="h-full flex flex-col bg-background">
       <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-sm bg-primary flex items-center justify-center">
-            <Sparkles className="w-4 h-4 text-primary-foreground" />
-          </div>
+          <img src="/favicon.png" alt="美团阿波罗" className="w-7 h-7 object-contain mr-1 shrink-0" />
           <div>
             <h2 className="font-semibold text-sm">AI 运营助手</h2>
             <p className="text-[10px] text-muted-foreground">美团阿波罗商家智能运营插件</p>

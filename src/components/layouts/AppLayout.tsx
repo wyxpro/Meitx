@@ -52,9 +52,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         onClick={handleLogoClick}
         className="h-14 flex items-center px-4 border-b border-border hover:bg-muted/50 transition-colors w-full text-left shrink-0"
       >
-        <div className="w-7 h-7 rounded-sm bg-primary flex items-center justify-center mr-2 shrink-0">
-          <Sparkles className="w-4 h-4 text-primary-foreground" />
-        </div>
+        <img src="/favicon.png" alt="美团阿波罗" className="w-7 h-7 object-contain mr-2 shrink-0" />
         <div>
           <h1 className="font-semibold text-sm leading-tight">美团阿波罗</h1>
           <p className="text-[10px] text-muted-foreground">商家智能运营</p>

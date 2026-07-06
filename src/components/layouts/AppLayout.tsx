@@ -108,7 +108,6 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                 <p className="text-sm font-semibold truncate text-foreground">{profile.display_name || profile.username || '用户'}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">{profile.role === 'admin' ? '管理员' : profile.role === 'manager' ? '运营经理' : '运营顾问'}</p>
               </div>
-              <User className="w-4 h-4 text-muted-foreground shrink-0" />
             </button>
             {/* 退出登录 */}
             <button

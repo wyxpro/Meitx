@@ -252,7 +252,7 @@ function KangarooAdvisor() {
 
     setTimeout(() => {
       const matchKey = Object.keys(MOCK_ANSWERS).find(k => displayText.includes(k));
-      const replyText = matchKey ? MOCK_ANSWERS[matchKey] : `感谢您的提问！关于"${displayText}"，袋鼠参谋正在为您分析最新行业数据，结合美团平台实时数据与AI模型，为您提供专属经营建议。建议您可以从市场需求、竞争格局和门店运营三个维度综合考量，如需详细报告可点击下方「数据报告」获取完整分析。`;
+      const replyText = matchKey ? MOCK_ANSWERS[matchKey] : `感谢您的提问！关于"${displayText}"，AI沟通方案正在为您分析最新行业数据，结合美团平台实时数据与AI模型，为您提供专属经营建议。建议您可以从市场需求、竞争格局和门店运营三个维度综合考量，如需详细报告可点击下方「数据报告」获取完整分析。`;
       const assistantMsg: ChatMessage = { id: `a-${Date.now()}`, role: 'assistant', text: replyText };
       setMessages(prev => [...prev, assistantMsg]);
       setIsTyping(false);
@@ -407,9 +407,11 @@ function KangarooAdvisor() {
                   className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
                 >
                   {msg.role === 'assistant' && (
-                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0">
-                      <Sparkles className="w-4 h-4 text-primary-foreground" />
-                    </div>
+                    <img
+                      src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=120&h=120"
+                      alt="AI"
+                      className="w-8 h-8 rounded-full shrink-0 object-cover"
+                    />
                   )}
                   <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed overflow-hidden ${
                     msg.role === 'user'
@@ -439,9 +441,11 @@ function KangarooAdvisor() {
             </AnimatePresence>
             {isTyping && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-3">
-                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0">
-                  <Sparkles className="w-4 h-4 text-primary-foreground" />
-                </div>
+                <img
+                  src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=120&h=120"
+                  alt="AI"
+                  className="w-8 h-8 rounded-full shrink-0 object-cover"
+                />
                 <div className="bg-muted rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-1">
                   {[0, 1, 2].map(i => (
                     <motion.span key={i} className="w-1.5 h-1.5 rounded-full bg-muted-foreground"
@@ -468,7 +472,7 @@ function KangarooAdvisor() {
       </div>
 
       {/* 多模态输入区 */}
-      <div className="shrink-0 border-t border-border px-4 py-3 bg-background space-y-2">
+      <div className="shrink-0 border-t border-border px-4 py-3 bg-background space-y-2.5">
         {/* 语音 / 图片 / 附件 工具栏 */}
         {isRecording ? (
           <div className="flex items-center gap-3 rounded-full px-4 py-2 bg-destructive/10 text-destructive text-sm">
@@ -544,16 +548,6 @@ function KangarooAdvisor() {
             <SendHorizonal className="w-4 h-4" />
           </button>
         </div>
-
-        {/* 底部功能标签 */}
-        <div className="flex items-center gap-3 px-1 overflow-x-auto whitespace-nowrap">
-          {[{ icon: Zap, label: 'AI营销诊断' }, { icon: BarChart2, label: '数据解读' }, { icon: MapPin, label: '选址建议' }, { icon: Utensils, label: '菜品研发' }].map(chip => (
-            <button key={chip.label} onClick={() => sendMessage(chip.label + '，请帮我分析')}
-              className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-primary transition-colors whitespace-nowrap">
-              <chip.icon className="w-3 h-3" />{chip.label}
-            </button>
-          ))}
-        </div>
       </div>
     </div>
   );
@@ -564,7 +558,7 @@ export default function CommunicationPage() {
   const [keyword, setKeyword]   = useState('');
   const [channel, setChannel]   = useState('all');
   const [result,  setResult]    = useState('all');
-  const [activeTab, setActiveTab] = useState('records');
+  const [activeTab, setActiveTab] = useState('kangaroo');
 
   const [addOpen, setAddOpen]   = useState(false);
   const [editRecord, setEditRecord] = useState<CommRecord | null>(null);
@@ -717,28 +711,10 @@ export default function CommunicationPage() {
       </Dialog>
 
       <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
-        {/* KPI 卡片 */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {statCards.map((c, i) => (
-            <motion.div key={c.label} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}>
-              <Card className="rounded-sm border-border shadow-sm">
-                <CardContent className="p-3 md:p-4">
-                  <p className="text-xs text-muted-foreground">{c.label}</p>
-                  <div className="flex items-end justify-between mt-1">
-                    <p className="text-2xl font-bold tracking-tight text-primary">{c.value}</p>
-                    {c.up ? <TrendingUp className="w-3.5 h-3.5 text-success mb-1" /> : <AlertCircle className="w-3.5 h-3.5 text-warning mb-1" />}
-                  </div>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">{c.sub}</p>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
-
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="rounded-sm mb-4 flex-wrap h-auto gap-1">
             <TabsTrigger value="kangaroo" className="rounded-sm text-xs">
-              <Sparkles className="w-3.5 h-3.5 mr-1 text-primary" />袋鼠参谋
+              <Sparkles className="w-3.5 h-3.5 mr-1 text-primary" />AI沟通方案
             </TabsTrigger>
             <TabsTrigger value="records"  className="rounded-sm text-xs"><Phone className="w-3.5 h-3.5 mr-1" />沟通记录</TabsTrigger>
             <TabsTrigger value="followup" className="rounded-sm text-xs">
@@ -752,6 +728,23 @@ export default function CommunicationPage() {
 
           {/* ── 沟通记录 ── */}
           <TabsContent value="records" className="space-y-4">
+            {/* KPI 卡片 */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+              {statCards.map((c, i) => (
+                <motion.div key={c.label} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}>
+                  <Card className="rounded-sm border-border shadow-sm">
+                    <CardContent className="p-3 md:p-4">
+                      <p className="text-xs text-muted-foreground">{c.label}</p>
+                      <div className="flex items-end justify-between mt-1">
+                        <p className="text-2xl font-bold tracking-tight text-primary">{c.value}</p>
+                        {c.up ? <TrendingUp className="w-3.5 h-3.5 text-success mb-1" /> : <AlertCircle className="w-3.5 h-3.5 text-warning mb-1" />}
+                      </div>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">{c.sub}</p>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />

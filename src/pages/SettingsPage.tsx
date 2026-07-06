@@ -80,263 +80,316 @@ export default function SettingsPage() {
 
   return (
     <AppLayout title="个人中心">
-      <div className="p-4 md:p-6 max-w-3xl mx-auto">
-        <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="rounded-sm mb-6 flex flex-wrap h-auto gap-1">
-            <TabsTrigger value="profile" className="rounded-sm text-xs gap-1.5"><User className="w-3.5 h-3.5" />个人资料</TabsTrigger>
-            <TabsTrigger value="notifications" className="rounded-sm text-xs gap-1.5"><Bell className="w-3.5 h-3.5" />通知设置</TabsTrigger>
-            <TabsTrigger value="security" className="rounded-sm text-xs gap-1.5"><Shield className="w-3.5 h-3.5" />账号安全</TabsTrigger>
-            <TabsTrigger value="appearance" className="rounded-sm text-xs gap-1.5"><Palette className="w-3.5 h-3.5" />界面偏好</TabsTrigger>
-          </TabsList>
+      <div className="p-4 md:p-6 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Left Column: Quick Profile Info Card */}
+          <div className="lg:col-span-1 space-y-6">
+            <Card className="rounded-xl border-border shadow-sm overflow-hidden bg-card">
+              <div className="h-20 bg-gradient-to-r from-primary/15 via-primary/5 to-accent/15" />
+              <CardContent className="p-5 -mt-10 text-center relative z-10">
+                <Avatar className="w-20 h-20 ring-4 ring-background mx-auto shadow-sm">
+                  <AvatarImage src={currentAvatar} className="object-cover" />
+                  <AvatarFallback className="text-2xl bg-primary text-primary-foreground font-bold">
+                    {(profile?.display_name || profile?.username || '用')?.slice(0, 1)}
+                  </AvatarFallback>
+                </Avatar>
+                <h3 className="font-bold text-base mt-4 text-foreground truncate">{profile?.display_name || profile?.username || '未设置昵称'}</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {profile?.role === 'admin' ? '系统管理员' : profile?.role === 'manager' ? '运营经理' : '运营顾问'}
+                </p>
+                <div className="mt-2.5 flex justify-center">
+                  <Badge variant="secondary" className="rounded-full px-2.5 py-0.5 text-[10px] font-normal">
+                    {profile?.region || '全国地区'} · {profile?.department || '美团运营'}
+                  </Badge>
+                </div>
+                
+                <Separator className="my-5" />
+                
+                <div className="space-y-3 text-left text-xs text-muted-foreground">
+                  <div className="flex justify-between">
+                    <span>账号名</span>
+                    <span className="font-medium text-foreground">{profile?.username}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>所属大区</span>
+                    <span className="font-medium text-foreground">{profile?.department || '未设置'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>办公城市</span>
+                    <span className="font-medium text-foreground">{profile?.region || '未设置'}</span>
+                  </div>
+                </div>
+                
+                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+                <Button variant="outline" size="sm" className="mt-6 w-full rounded-xl text-xs h-9 gap-1.5" onClick={() => fileInputRef.current?.click()}>
+                  <Upload className="w-3.5 h-3.5" /> 上传新头像
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
 
-          {/* 个人资料 */}
-          <TabsContent value="profile">
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-              <Card className="rounded-sm border-border shadow-sm">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-sm font-semibold">个人资料</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-5">
-                  {/* 头像区域 */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-4">
-                      <Avatar className="w-16 h-16 ring-2 ring-primary/20">
-                        <AvatarImage src={currentAvatar} className="object-cover" />
-                        <AvatarFallback className="text-xl bg-primary text-primary-foreground">
-                          {(profile?.display_name || profile?.username || '用')?.slice(0, 1)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="text-sm font-medium">{profile?.display_name || profile?.username || '未设置昵称'}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          {profile?.role === 'admin' ? '管理员' : profile?.role === 'manager' ? '运营经理' : '运营顾问'}
-                        </p>
-                        <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
-                        <Button variant="outline" size="sm" className="mt-2 rounded-sm text-xs h-7" onClick={() => fileInputRef.current?.click()}>
-                          <Upload className="w-3 h-3 mr-1" /> 上传头像
+          {/* Right Column: Settings Tabs */}
+          <div className="lg:col-span-3">
+            <Tabs defaultValue="profile" className="w-full">
+              <TabsList className="rounded-xl p-1 bg-muted/60 mb-6 flex flex-wrap h-auto gap-1">
+                <TabsTrigger value="profile" className="rounded-lg text-xs gap-1.5 py-2"><User className="w-3.5 h-3.5" />个人资料</TabsTrigger>
+                <TabsTrigger value="notifications" className="rounded-lg text-xs gap-1.5 py-2"><Bell className="w-3.5 h-3.5" />通知设置</TabsTrigger>
+                <TabsTrigger value="security" className="rounded-lg text-xs gap-1.5 py-2"><Shield className="w-3.5 h-3.5" />账号安全</TabsTrigger>
+                <TabsTrigger value="appearance" className="rounded-lg text-xs gap-1.5 py-2"><Palette className="w-3.5 h-3.5" />界面偏好</TabsTrigger>
+              </TabsList>
+
+              {/* 个人资料 */}
+              <TabsContent value="profile" className="focus-visible:outline-none">
+                <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+                  <Card className="rounded-xl border-border shadow-sm">
+                    <CardHeader className="pb-4">
+                      <CardTitle className="text-sm font-semibold">资料详情</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      {/* 内置头像选择 */}
+                      <div className="space-y-3">
+                        <Label className="text-xs text-muted-foreground">快速选用系统头像</Label>
+                        <div className="grid grid-cols-5 gap-3">
+                          {BUILTIN_AVATARS.map(av => (
+                            <button
+                              key={av.id}
+                              onClick={() => { setSelectedAvatar(av.url); setUploadedAvatar(''); }}
+                              className={`relative rounded-xl overflow-hidden aspect-square border-2 transition-all hover:scale-105 ${
+                                selectedAvatar === av.url ? 'border-primary ring-2 ring-primary/30 shadow-md' : 'border-border'
+                              }`}
+                            >
+                              <img src={av.url} alt={av.label} className="w-full h-full object-cover" />
+                              {selectedAvatar === av.url && (
+                                <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
+                                  <CheckCircle2 className="w-4 h-4 text-primary" />
+                                </div>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                        <div className="grid grid-cols-5 gap-3">
+                          {BUILTIN_AVATARS.map(av => (
+                            <p key={av.id} className="text-[10px] text-center text-muted-foreground truncate">{av.label}</p>
+                          ))}
+                        </div>
+                      </div>
+
+                      <Separator />
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-1.5 sm:col-span-2">
+                          <Label className="text-xs">显示名称</Label>
+                          <Input
+                            placeholder="设置显示名称"
+                            value={profileForm.display_name}
+                            onChange={e => setProfileForm(f => ({ ...f, display_name: e.target.value }))}
+                            className="rounded-xl"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">所属部门</Label>
+                          <Select value={profileForm.department} onValueChange={v => setProfileForm(f => ({ ...f, department: v }))}>
+                            <SelectTrigger className="rounded-xl text-xs"><SelectValue placeholder="选择部门" /></SelectTrigger>
+                            <SelectContent className="rounded-xl">
+                              {['华北大区', '华东大区', '华南大区', '华中大区', '西南大区', '西北大区'].map(d => (
+                                <SelectItem key={d} value={d}>{d}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">所在城市</Label>
+                          <Input
+                            placeholder="如：北京"
+                            value={profileForm.region}
+                            onChange={e => setProfileForm(f => ({ ...f, region: e.target.value }))}
+                            className="rounded-xl"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end pt-2">
+                        <Button className="rounded-xl text-xs px-5 h-10 shadow-sm" onClick={handleSave}>
+                          {saved ? <><Check className="w-3.5 h-3.5 mr-1" />已保存</> : <><Save className="w-3.5 h-3.5 mr-1" />保存修改</>}
                         </Button>
                       </div>
-                    </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </TabsContent>
 
-                    {/* 内置女生头像选择 */}
-                    <div className="space-y-2">
-                      <p className="text-xs font-medium text-muted-foreground">选择内置头像</p>
-                      <div className="grid grid-cols-5 gap-2">
-                        {BUILTIN_AVATARS.map(av => (
-                          <button
-                            key={av.id}
-                            onClick={() => { setSelectedAvatar(av.url); setUploadedAvatar(''); }}
-                            className={`relative rounded-sm overflow-hidden aspect-square border-2 transition-all hover:scale-105 ${
-                              selectedAvatar === av.url ? 'border-primary ring-2 ring-primary/30' : 'border-border'
-                            }`}
-                          >
-                            <img src={av.url} alt={av.label} className="w-full h-full object-cover" />
-                            {selectedAvatar === av.url && (
-                              <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
-                                <CheckCircle2 className="w-4 h-4 text-primary" />
+              {/* 通知设置 */}
+              <TabsContent value="notifications" className="focus-visible:outline-none">
+                <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+                  <Card className="rounded-xl border-border shadow-sm">
+                    <CardHeader className="pb-4">
+                      <CardTitle className="text-sm font-semibold">通知提醒设置</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <Card className="rounded-xl border border-muted/50 p-4 space-y-4">
+                          <h4 className="text-xs font-bold text-muted-foreground tracking-wider uppercase">系统实时通知</h4>
+                          {[
+                            { key: 'push', label: '系统推送', desc: '商家动态、签约提醒等实时通知' },
+                            { key: 'email', label: '邮件通知', desc: '重要事件和周报邮件提醒' },
+                            { key: 'sms', label: '短信提醒', desc: '紧急通知和验证码短信' },
+                          ].map((item, i) => (
+                            <div key={item.key} className="flex items-center justify-between">
+                              <div className="pr-4">
+                                <p className="text-sm font-medium">{item.label}</p>
+                                <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{item.desc}</p>
                               </div>
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                      <div className="grid grid-cols-5 gap-2">
-                        {BUILTIN_AVATARS.map(av => (
-                          <p key={av.id} className="text-[10px] text-center text-muted-foreground truncate">{av.label}</p>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <Label className="text-xs">登录账号</Label>
-                      <Input value={profile?.username || ''} disabled className="rounded-sm bg-muted/30 text-muted-foreground" />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label className="text-xs">显示名称</Label>
-                      <Input
-                        placeholder="设置显示名称"
-                        value={profileForm.display_name}
-                        onChange={e => setProfileForm(f => ({ ...f, display_name: e.target.value }))}
-                        className="rounded-sm"
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label className="text-xs">所属部门</Label>
-                      <Select value={profileForm.department} onValueChange={v => setProfileForm(f => ({ ...f, department: v }))}>
-                        <SelectTrigger className="rounded-sm text-xs"><SelectValue placeholder="选择部门" /></SelectTrigger>
-                        <SelectContent className="rounded-sm">
-                          {['华北大区', '华东大区', '华南大区', '华中大区', '西南大区', '西北大区'].map(d => (
-                            <SelectItem key={d} value={d}>{d}</SelectItem>
+                              <Switch
+                                checked={notifications[item.key as keyof typeof notifications]}
+                                onCheckedChange={v => setNotifications(n => ({ ...n, [item.key]: v }))}
+                              />
+                            </div>
                           ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label className="text-xs">所在城市</Label>
-                      <Input
-                        placeholder="如：北京"
-                        value={profileForm.region}
-                        onChange={e => setProfileForm(f => ({ ...f, region: e.target.value }))}
-                        className="rounded-sm"
-                      />
-                    </div>
-                  </div>
+                        </Card>
 
-                  <div className="flex justify-end pt-2">
-                    <Button className="rounded-sm text-xs" onClick={handleSave}>
-                      {saved ? <><Check className="w-3.5 h-3.5 mr-1" />已保存</> : <><Save className="w-3.5 h-3.5 mr-1" />保存修改</>}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </TabsContent>
+                        <Card className="rounded-xl border border-muted/50 p-4 space-y-4">
+                          <h4 className="text-xs font-bold text-muted-foreground tracking-wider uppercase font-sans">数据及简报推送</h4>
+                          {[
+                            { key: 'dailyReport', label: '日报推送', desc: '每日工作总结和数据简报' },
+                            { key: 'weeklyDigest', label: '周度摘要', desc: '每周大区经营数据汇总' },
+                          ].map((item, i) => (
+                            <div key={item.key} className="flex items-center justify-between">
+                              <div className="pr-4">
+                                <p className="text-sm font-medium">{item.label}</p>
+                                <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{item.desc}</p>
+                              </div>
+                              <Switch
+                                checked={notifications[item.key as keyof typeof notifications]}
+                                onCheckedChange={v => setNotifications(n => ({ ...n, [item.key]: v }))}
+                              />
+                            </div>
+                          ))}
+                        </Card>
+                      </div>
 
-          {/* 通知设置 */}
-          <TabsContent value="notifications">
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-              <Card className="rounded-sm border-border shadow-sm">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-sm font-semibold">通知设置</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {[
-                    { key: 'push', label: '系统推送', desc: '商家动态、签约提醒等实时推送' },
-                    { key: 'email', label: '邮件通知', desc: '重要事件和周报邮件提醒' },
-                    { key: 'sms', label: '短信提醒', desc: '紧急通知和验证码短信' },
-                    { key: 'dailyReport', label: '日报推送', desc: '每日工作总结报告' },
-                    { key: 'weeklyDigest', label: '周度摘要', desc: '每周数据分析汇总' },
-                  ].map((item, i) => (
-                    <div key={item.key}>
-                      {i > 0 && <Separator className="mb-4" />}
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium">{item.label}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">{item.desc}</p>
+                      <div className="flex justify-end pt-2">
+                        <Button className="rounded-xl text-xs px-5 h-10 shadow-sm" onClick={handleSave}>
+                          <Save className="w-3.5 h-3.5 mr-1" />保存设置
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </TabsContent>
+
+              {/* 账号安全 */}
+              <TabsContent value="security" className="focus-visible:outline-none">
+                <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <Card className="rounded-xl border-border shadow-sm">
+                      <CardHeader className="pb-4">
+                        <CardTitle className="text-sm font-semibold">修改登录密码</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {[
+                          { label: '当前密码', placeholder: '请输入当前密码' },
+                          { label: '新密码', placeholder: '至少8位，包含字母和数字' },
+                          { label: '确认新密码', placeholder: '再次输入新密码' },
+                        ].map(f => (
+                          <div key={f.label} className="space-y-1.5">
+                            <Label className="text-xs">{f.label}</Label>
+                            <Input type="password" placeholder={f.placeholder} className="rounded-xl" />
+                          </div>
+                        ))}
+                        <Button className="rounded-xl text-xs h-10 px-5 shadow-sm mt-2" onClick={() => toast.success('密码修改成功')}>确认修改</Button>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="rounded-xl border-border shadow-sm">
+                      <CardHeader className="pb-4">
+                        <CardTitle className="text-sm font-semibold">活动设备管理</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3.5">
+                        {[
+                          { device: 'Chrome / Windows 11', time: '当前设备在线', ip: '127.0.0.1', current: true },
+                          { device: 'Safari / iPhone 15', time: '2天前活跃', ip: '192.168.1.120', current: false },
+                        ].map((d) => (
+                          <div key={d.device} className="flex items-center justify-between p-3.5 bg-muted/40 rounded-xl">
+                            <div>
+                              <p className="text-xs font-semibold">{d.device}</p>
+                              <p className="text-[10px] text-muted-foreground mt-0.5">{d.time} · IP: {d.ip}</p>
+                            </div>
+                            {d.current
+                              ? <Badge className="rounded-full text-[9px] bg-success/15 text-success border-transparent px-2.5 py-0.5">当前</Badge>
+                              : <Button variant="outline" size="sm" className="rounded-xl text-xs h-7 px-2.5" onClick={() => toast.success('已退出该设备')}>下线</Button>
+                            }
+                          </div>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  </div>
+                </motion.div>
+              </TabsContent>
+
+              {/* 界面偏好 */}
+              <TabsContent value="appearance" className="focus-visible:outline-none">
+                <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+                  <Card className="rounded-xl border-border shadow-sm">
+                    <CardHeader className="pb-4">
+                      <CardTitle className="text-sm font-semibold">界面与偏好设置</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <Label className="text-xs">系统语言</Label>
+                            <Select defaultValue="zh">
+                              <SelectTrigger className="rounded-xl text-xs w-full"><SelectValue /></SelectTrigger>
+                              <SelectContent className="rounded-xl">
+                                <SelectItem value="zh">简体中文 (Chinese)</SelectItem>
+                                <SelectItem value="en">English (US)</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label className="text-xs">默认进入首页</Label>
+                            <Select defaultValue="dashboard">
+                              <SelectTrigger className="rounded-xl text-xs w-full"><SelectValue /></SelectTrigger>
+                              <SelectContent className="rounded-xl">
+                                <SelectItem value="dashboard">工作台</SelectItem>
+                                <SelectItem value="merchants">商家管理</SelectItem>
+                                <SelectItem value="data">数据中心</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
                         </div>
-                        <Switch
-                          checked={notifications[item.key as keyof typeof notifications]}
-                          onCheckedChange={v => setNotifications(n => ({ ...n, [item.key]: v }))}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                  <div className="flex justify-end pt-2">
-                    <Button className="rounded-sm text-xs" onClick={handleSave}>
-                      <Save className="w-3.5 h-3.5 mr-1" />保存设置
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </TabsContent>
 
-          {/* 账号安全 */}
-          <TabsContent value="security">
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-              <Card className="rounded-sm border-border shadow-sm">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-sm font-semibold">修改密码</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {[
-                    { label: '当前密码', placeholder: '请输入当前密码' },
-                    { label: '新密码', placeholder: '至少8位，包含字母和数字' },
-                    { label: '确认新密码', placeholder: '再次输入新密码' },
-                  ].map(f => (
-                    <div key={f.label} className="space-y-1.5">
-                      <Label className="text-xs">{f.label}</Label>
-                      <Input type="password" placeholder={f.placeholder} className="rounded-sm" />
-                    </div>
-                  ))}
-                  <Button className="rounded-sm text-xs" onClick={() => toast.success('密码修改成功')}>确认修改</Button>
-                </CardContent>
-              </Card>
-
-              <Card className="rounded-sm border-border shadow-sm">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-sm font-semibold">登录设备管理</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {[
-                    { device: 'Chrome / Windows 11', time: '当前设备', ip: '127.0.0.1', current: true },
-                    { device: 'Safari / iPhone 15', time: '2天前', ip: '192.168.1.x', current: false },
-                  ].map((d) => (
-                    <div key={d.device} className="flex items-center justify-between p-3 bg-muted/40 rounded-sm">
-                      <div>
-                        <p className="text-sm font-medium">{d.device}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">{d.time} · {d.ip}</p>
+                        <Card className="rounded-xl border border-muted/50 p-4 space-y-4">
+                          <h4 className="text-xs font-bold text-muted-foreground tracking-wider uppercase">系统交互特性</h4>
+                          {[
+                            { label: '紧凑模式', desc: '缩减表格及卡片间距，呈现更多内容' },
+                            { label: '动画效果', desc: '开启页面无缝过渡及动效反馈' },
+                            { label: '自动更新数据', desc: '保持后台数据每 5 分钟自动拉取刷新' },
+                          ].map((item) => (
+                            <div key={item.label} className="flex items-center justify-between">
+                              <div className="pr-4">
+                                <p className="text-sm font-medium">{item.label}</p>
+                                <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">{item.desc}</p>
+                              </div>
+                              <Switch defaultChecked={item.label !== '紧凑模式'} />
+                            </div>
+                          ))}
+                        </Card>
                       </div>
-                      {d.current
-                        ? <Badge className="rounded-sm text-[10px] bg-success text-success-foreground">当前</Badge>
-                        : <Button variant="outline" size="sm" className="rounded-sm text-xs h-7" onClick={() => toast.success('已退出该设备')}>退出</Button>
-                      }
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            </motion.div>
-          </TabsContent>
 
-          {/* 界面偏好 */}
-          <TabsContent value="appearance">
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-              <Card className="rounded-sm border-border shadow-sm">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-sm font-semibold">界面偏好</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-5">
-                  <div className="space-y-2">
-                    <Label className="text-xs">语言</Label>
-                    <Select defaultValue="zh">
-                      <SelectTrigger className="rounded-sm text-xs w-48"><SelectValue /></SelectTrigger>
-                      <SelectContent className="rounded-sm">
-                        <SelectItem value="zh">简体中文</SelectItem>
-                        <SelectItem value="en">English</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <Separator />
-                  <div className="space-y-2">
-                    <Label className="text-xs">默认首页</Label>
-                    <Select defaultValue="dashboard">
-                      <SelectTrigger className="rounded-sm text-xs w-48"><SelectValue /></SelectTrigger>
-                      <SelectContent className="rounded-sm">
-                        <SelectItem value="dashboard">工作台</SelectItem>
-                        <SelectItem value="merchants">商家管理</SelectItem>
-                        <SelectItem value="data">数据中心</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <Separator />
-                  <div className="space-y-3">
-                    {[
-                      { label: '紧凑模式', desc: '减少内边距，显示更多内容' },
-                      { label: '动画效果', desc: '页面切换和交互动画' },
-                      { label: '数据自动刷新', desc: '每5分钟自动刷新数据' },
-                    ].map((item) => (
-                      <div key={item.label} className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm">{item.label}</p>
-                          <p className="text-xs text-muted-foreground">{item.desc}</p>
-                        </div>
-                        <Switch defaultChecked={item.label !== '紧凑模式'} />
+                      <div className="flex justify-end pt-2">
+                        <Button className="rounded-xl text-xs px-5 h-10 shadow-sm" onClick={handleSave}>
+                          <Save className="w-3.5 h-3.5 mr-1" />保存偏好
+                        </Button>
                       </div>
-                    ))}
-                  </div>
-                  <div className="flex justify-end pt-2">
-                    <Button className="rounded-sm text-xs" onClick={handleSave}>
-                      <Save className="w-3.5 h-3.5 mr-1" />保存偏好
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </TabsContent>
-        </Tabs>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </TabsContent>
+            </Tabs>
+          </div>
+        </div>
       </div>
     </AppLayout>
   );

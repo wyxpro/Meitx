@@ -1,9 +1,9 @@
-# 🏛️ 美团阿波罗商家智能运营平台 (Meituan Apollo Workstation)
+# 🏛️ 美团阿波罗智慧运营平台 (Meituan Apollo)
 [![React](https://img.shields.io/badge/React-18.0.0-61DAFB?style=flat-square&logo=react&logoColor=black)](#) [![TypeScript](https://img.shields.io/badge/TypeScript-5.9.3-3178C6?style=flat-square&logo=typescript&logoColor=white)](#) [![Vite](https://img.shields.io/badge/Vite-Rolldown--Vite-646CFF?style=flat-square&logo=vite&logoColor=white)](#) [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.4.11-38B2AC?style=flat-square&logo=tailwindcss&logoColor=white)](#) [![Supabase](https://img.shields.io/badge/Supabase-Database%20%26%20Auth-3ECF8E?style=flat-square&logo=supabase&logoColor=white)](#) [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17.6-4169E1?style=flat-square&logo=postgresql&logoColor=white)](#) [![RadixUI](https://img.shields.io/badge/Radix_UI-Components-151718?style=flat-square&logo=radix-ui&logoColor=white)](#) [![Framer_Motion](https://img.shields.io/badge/Framer_Motion-Animation-EA4AAA?style=flat-square&logo=framer&logoColor=white)](#) [![Recharts](https://img.shields.io/badge/Recharts-Data_Visualization-22B5BF?style=flat-square)](#)
 
 ## 📋 项目简介
 
-**美团阿波罗 (Meituan Apollo)** 是一款专为本地生活服务（包括餐饮、丽人、酒店旅游、休闲娱乐、亲子教育、运动健身、生活服务及医疗健康等 8 大品类）商户运营团队深度定制的 **AI 驱动型商家智能运营工作台**。系统作为运营人员的智能 Copilot，通过融合商户经营数据诊断、全自动套餐智能匹配、多场景个性化销售话术生成、商户签约接受度预测以及多模态智能对话问答，助力运营专员精准把控商户痛点、提高拜访签约率，实现商机从挖掘到续约的全生命周期高效流转与精细化运营。
+**美团阿波罗 (Meituan Apollo)** 是一款专为本地生活服务（包括餐饮、丽人、酒店旅游、休闲娱乐、亲子教育、运动健身、生活服务及医疗健康等 8 大品类）商户运营团队深度定制的 **AI 驱动型商家智慧运营平台**。系统作为运营人员的智能 Copilot，通过融合商户经营数据诊断、全自动套餐智能匹配、多场景个性化销售话术生成、商户签约接受度预测以及多模态智能对话问答，助力运营专员精准把控商户痛点、提高拜访签约率，实现商机从挖掘到续约的全生命周期高效流转与精细化运营。
 
 
 ---

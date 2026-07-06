@@ -13,7 +13,7 @@ import {
   Package, Gift, CheckCircle2, ArrowUpRight, ExternalLink
 } from 'lucide-react';
 import { AIPluginPanel, AIPluginDrawer } from '@/components/merchant/AIPluginPanel';
-import { getMockMerchantById } from '@/services/mockData';
+import { getMockMerchantById, getRealAvatarUrl } from '@/services/mockData';
 import type { Merchant } from '@/types/merchant';
 import { toast } from 'sonner';
 
@@ -116,9 +116,9 @@ export default function MerchantDetailPage() {
               <CardContent className="p-4 md:p-6">
                 <div className="flex items-start gap-4">
                   {/* 商家头像 */}
-                  <div className="w-16 h-16 rounded-sm overflow-hidden bg-primary/10 border border-border shrink-0">
+                  <div className="w-16 h-16 rounded-xl overflow-hidden bg-primary/10 border border-border shrink-0">
                     <img
-                      src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(merchant.basicInfo.name)}&backgroundColor=1D6BFF&fontWeight=700&fontSize=40`}
+                      src={merchant.basicInfo.avatarUrl || getRealAvatarUrl(merchant.basicInfo.name)}
                       alt={merchant.basicInfo.name}
                       className="w-full h-full object-cover"
                     />

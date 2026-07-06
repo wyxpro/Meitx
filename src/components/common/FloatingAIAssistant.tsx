@@ -145,9 +145,7 @@ export function FloatingAIAssistant() {
               {/* 头部 */}
               <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-primary text-primary-foreground shrink-0">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-sm bg-primary-foreground/20 flex items-center justify-center">
-                    <Bot className="w-4 h-4" />
-                  </div>
+                  <img src="/favicon.png" alt="美团阿波罗" className="w-7 h-7 object-contain shrink-0" />
                   <div>
                     <h2 className="font-semibold text-sm">AI 运营助手</h2>
                     <p className="text-[10px] opacity-70">美团阿波罗智能插件</p>

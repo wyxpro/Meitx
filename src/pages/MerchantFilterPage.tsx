@@ -224,7 +224,7 @@ export default function MerchantFilterPage() {
               {filteredList.slice(0, 20).map((merchant) => (
                 <Card
                   key={merchant.id}
-                  className="rounded-sm border-border shadow-sm cursor-pointer"
+                  className="rounded-xl border-border shadow-sm cursor-pointer"
                   onClick={() => navigate(`/merchant/${merchant.id}`)}
                 >
                   <CardContent className="p-3">
@@ -258,7 +258,7 @@ export default function MerchantFilterPage() {
             </div>
 
             {/* 桌面端表格视图 */}
-            <div className="hidden md:block overflow-x-auto bg-card rounded-sm border border-border">
+            <div className="hidden md:block overflow-x-auto bg-card rounded-xl border border-border">
               <Table>
                 <TableHeader>
                   <TableRow>

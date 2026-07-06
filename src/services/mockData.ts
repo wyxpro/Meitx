@@ -15,7 +15,7 @@ const now = new Date();
 const currentMonth = now.getMonth() + 1;
 
 // 真实商家头像图片（餐厅/店铺门头）
-const MERCHANT_AVATARS = [
+export const MERCHANT_AVATARS = [
   'https://miaoda-site-img.cdn.bcebos.com/images/baidu_image_search_dc313d37-cac8-4ded-8e60-56945927097e.jpg',
   'https://miaoda-site-img.cdn.bcebos.com/images/baidu_image_search_87a2cf03-b03a-45da-abca-07fd6defb7e1.jpg',
   'https://miaoda-site-img.cdn.bcebos.com/images/baidu_image_search_eb42f7c6-8f23-41d0-91fc-78bc185230f7.jpg',
@@ -25,6 +25,15 @@ const MERCHANT_AVATARS = [
   'https://miaoda-site-img.cdn.bcebos.com/images/baidu_image_search_a84a1ef8-edec-4813-bfc7-e72986316343.jpg',
   'https://miaoda-site-img.cdn.bcebos.com/images/baidu_image_search_ae7c7b2a-3ee7-4fe9-b361-02f82ec4efb0.jpg',
 ];
+
+export function getRealAvatarUrl(name: string): string {
+  if (!name) return MERCHANT_AVATARS[0];
+  let sum = 0;
+  for (let i = 0; i < name.length; i++) {
+    sum += name.charCodeAt(i);
+  }
+  return MERCHANT_AVATARS[sum % MERCHANT_AVATARS.length];
+}
 
 function formatPhone(phone: string): string {
   return phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2');
@@ -225,15 +234,17 @@ export function getMockMerchantById(id: string): Merchant {
   const lastMonthSales = Math.round(monthlySales * (0.85 + Math.random() * 0.35));
   const lastMonthOrders = Math.round(monthlyOrders * (0.85 + Math.random() * 0.35));
 
+  const name = `测试${category}门店-${id.slice(-4)}`;
   const basicInfo: Merchant['basicInfo'] = {
     id,
-    name: `测试${category}门店-${id.slice(-4)}`,
+    name,
     category,
     subCategory: `${category}子类`,
     openDays: 365 + Math.floor(Math.random() * 1000),
     address: '北京市朝阳区测试街道88号',
     contactPhone: formatPhone(`138${String(Math.random()).slice(2, 10)}`),
     managerName: '王老板',
+    avatarUrl: getRealAvatarUrl(name),
   };
 
   const operationData: Merchant['operationData'] = {

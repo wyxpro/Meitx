@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Sparkles, Filter, X, Bot, BarChart3, MessageSquare, Calendar, Brain } from 'lucide-react';
+import { Sparkles, Filter, X, Bot, BarChart3, MessageSquare, Calendar, Brain, Package, TrendingUp } from 'lucide-react';
 import { MerchantDataCard } from './MerchantDataCard';
 import { PainPointCard } from './PainPointCard';
 import { PackageRecommendation } from './PackageRecommendation';
@@ -46,21 +46,29 @@ export function AIPluginPanel({ merchant, loading = false, isMobile = false, onC
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 min-h-0 flex flex-col">
-        <TabsList className="mx-4 mt-3 grid grid-cols-4 h-9 rounded-sm shrink-0">
-          <TabsTrigger value="overview" className="text-xs rounded-sm flex items-center gap-1">
-            <BarChart3 className="w-3 h-3" />
+        <TabsList className="mx-2 mt-3 grid grid-cols-6 h-9 rounded-sm shrink-0">
+          <TabsTrigger value="overview" className="text-[10px] md:text-xs px-0.5 rounded-sm flex items-center gap-0.5 justify-center" title="数据">
+            <BarChart3 className="w-3 h-3 shrink-0" />
             <span>数据</span>
           </TabsTrigger>
-          <TabsTrigger value="diagnose" className="text-xs rounded-sm flex items-center gap-1">
-            <Brain className="w-3 h-3" />
+          <TabsTrigger value="diagnose" className="text-[10px] md:text-xs px-0.5 rounded-sm flex items-center gap-0.5 justify-center" title="诊断">
+            <Brain className="w-3 h-3 shrink-0" />
             <span>诊断</span>
           </TabsTrigger>
-          <TabsTrigger value="script" className="text-xs rounded-sm flex items-center gap-1">
-            <MessageSquare className="w-3 h-3" />
+          <TabsTrigger value="package" className="text-[10px] md:text-xs px-0.5 rounded-sm flex items-center gap-0.5 justify-center" title="智能套餐推荐">
+            <Package className="w-3 h-3 shrink-0" />
+            <span>套餐</span>
+          </TabsTrigger>
+          <TabsTrigger value="prediction" className="text-[10px] md:text-xs px-0.5 rounded-sm flex items-center gap-0.5 justify-center" title="接受度预测">
+            <TrendingUp className="w-3 h-3 shrink-0" />
+            <span>接受度</span>
+          </TabsTrigger>
+          <TabsTrigger value="script" className="text-[10px] md:text-xs px-0.5 rounded-sm flex items-center gap-0.5 justify-center" title="话术">
+            <MessageSquare className="w-3 h-3 shrink-0" />
             <span>话术</span>
           </TabsTrigger>
-          <TabsTrigger value="season" className="text-xs rounded-sm flex items-center gap-1">
-            <Calendar className="w-3 h-3" />
+          <TabsTrigger value="season" className="text-[10px] md:text-xs px-0.5 rounded-sm flex items-center gap-0.5 justify-center" title="季节">
+            <Calendar className="w-3 h-3 shrink-0" />
             <span>季节</span>
           </TabsTrigger>
         </TabsList>
@@ -81,7 +89,13 @@ export function AIPluginPanel({ merchant, loading = false, isMobile = false, onC
 
                 <TabsContent value="diagnose" className="mt-0 space-y-4">
                   <PainPointCard painPoints={merchant.painPoints} />
+                </TabsContent>
+
+                <TabsContent value="package" className="mt-0 space-y-4">
                   <PackageRecommendation packages={merchant.recommendedPackages} />
+                </TabsContent>
+
+                <TabsContent value="prediction" className="mt-0 space-y-4">
                   <AcceptancePredictionCard prediction={merchant.acceptancePrediction} />
                 </TabsContent>
 

@@ -88,13 +88,13 @@ export default function HomePage() {
             {filteredMerchants.map((merchant, i) => (
               <motion.div key={merchant.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
                 <Card
-                  className="rounded-sm border-border shadow-sm hover:border-primary/50 hover:shadow-md transition-all cursor-pointer"
+                  className="rounded-xl border-border shadow-sm hover:border-primary/50 hover:shadow-md transition-all cursor-pointer"
                   onClick={() => navigate(`/merchant/${merchant.id}`)}
                 >
                   <CardContent className="p-3 md:p-4">
                     <div className="flex items-center gap-3">
                       {/* 头像 */}
-                      <div className="w-10 h-10 rounded-sm overflow-hidden bg-muted shrink-0 border border-border">
+                      <div className="w-10 h-10 rounded-md overflow-hidden bg-muted shrink-0 border border-border">
                         {merchant.avatarUrl ? (
                           <img src={merchant.avatarUrl} alt={merchant.name} className="w-full h-full object-cover" />
                         ) : (

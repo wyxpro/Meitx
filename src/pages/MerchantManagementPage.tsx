@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import { Search, Plus, Download, TrendingUp, TrendingDown, Star, Phone, Eye, ChevronRight, Pencil, Trash2, Upload } from 'lucide-react';
-import { getMockMerchantList, filterMockMerchantList } from '@/services/mockData';
+import { getMockMerchantList, filterMockMerchantList, getRealAvatarUrl } from '@/services/mockData';
 import { CATEGORIES, ACCEPTANCE_LABELS } from '@/types/merchant';
 import type { MerchantListItem } from '@/types/merchant';
 import { exportMerchantsToExcel, ExcelImportButton } from '@/lib/excel';
@@ -73,22 +73,25 @@ export default function MerchantManagementPage() {
   };
 
   const handleImport = (rows: MerchantExcelRow[]) => {
-    const newItems: MerchantListItem[] = rows.map((r, i) => ({
-      id: `imported-${Date.now()}-${i}`,
-      name: r.商家名称 ?? '',
-      category: r.品类 ?? '其他',
-      monthlySales: Number(r.月销售额) || 0,
-      monthlyOrders: Math.round((Number(r.月销售额) || 0) / 60),
-      connectionRate: Number(r.接通率) || 50,
-      acceptanceLevel: (r.意向等级 === '高意向' ? 'high' : r.意向等级 === '低意向' ? 'low' : 'medium') as 'high' | 'medium' | 'low',
-      potentialScore: 60,
-      advantageTags: ['导入'],
-      seasonPotential: 'medium' as const,
-      address: r.地址,
-      contactPhone: r.联系电话,
-      managerName: r.联系人,
-      avatarUrl: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(r.商家名称 ?? 'X')}&backgroundColor=1D6BFF&fontWeight=700`,
-    }));
+    const newItems: MerchantListItem[] = rows.map((r, i) => {
+      const name = r.商家名称 ?? '';
+      return {
+        id: `imported-${Date.now()}-${i}`,
+        name,
+        category: r.品类 ?? '其他',
+        monthlySales: Number(r.月销售额) || 0,
+        monthlyOrders: Math.round((Number(r.月销售额) || 0) / 60),
+        connectionRate: Number(r.接通率) || 50,
+        acceptanceLevel: (r.意向等级 === '高意向' ? 'high' : r.意向等级 === '低意向' ? 'low' : 'medium') as 'high' | 'medium' | 'low',
+        potentialScore: 60,
+        advantageTags: ['导入'],
+        seasonPotential: 'medium' as const,
+        address: r.地址,
+        contactPhone: r.联系电话,
+        managerName: r.联系人,
+        avatarUrl: getRealAvatarUrl(name),
+      };
+    });
     setMerchants(prev => [...newItems, ...prev]);
   };
 
@@ -108,7 +111,7 @@ export default function MerchantManagementPage() {
       address: form.address,
       contactPhone: form.contactPhone,
       managerName: form.managerName,
-      avatarUrl: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(form.name)}&backgroundColor=1D6BFF&fontWeight=700`,
+      avatarUrl: getRealAvatarUrl(form.name),
     };
     setMerchants(prev => [newItem, ...prev]);
     toast.success('商家已添加');
@@ -237,7 +240,7 @@ export default function MerchantManagementPage() {
         </Card>
 
         {/* 桌面表格 */}
-        <div className="hidden md:block overflow-x-auto bg-card rounded-sm border border-border shadow-sm">
+        <div className="hidden md:block overflow-x-auto bg-card rounded-xl border border-border shadow-sm">
           <Table>
             <TableHeader>
               <TableRow>
@@ -263,7 +266,7 @@ export default function MerchantManagementPage() {
                 >
                   <TableCell className="whitespace-nowrap">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-sm overflow-hidden border border-border shrink-0 bg-muted">
+                      <div className="w-8 h-8 rounded-md overflow-hidden border border-border shrink-0 bg-muted">
                         {m.avatarUrl
                           ? <img src={m.avatarUrl} alt={m.name} className="w-full h-full object-cover" />
                           : <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-primary">{m.name.slice(0, 1)}</div>
@@ -316,10 +319,10 @@ export default function MerchantManagementPage() {
         {/* 移动端卡片 */}
         <div className="md:hidden space-y-3">
           {filtered.slice(0, 30).map(m => (
-            <Card key={m.id} className="rounded-sm border-border shadow-sm cursor-pointer hover:border-primary/40 transition-colors" onClick={() => navigate(`/merchant/${m.id}`)}>
+            <Card key={m.id} className="rounded-xl border-border shadow-sm cursor-pointer hover:border-primary/40 transition-colors" onClick={() => navigate(`/merchant/${m.id}`)}>
               <CardContent className="p-3">
                 <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-sm overflow-hidden border border-border shrink-0 bg-muted">
+                  <div className="w-10 h-10 rounded-md overflow-hidden border border-border shrink-0 bg-muted">
                     {m.avatarUrl
                       ? <img src={m.avatarUrl} alt={m.name} className="w-full h-full object-cover" />
                       : <div className="w-full h-full flex items-center justify-center text-sm font-bold text-primary">{m.name.slice(0, 1)}</div>

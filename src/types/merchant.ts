@@ -7,6 +7,7 @@ export interface MerchantBasicInfo {
   address: string;
   contactPhone: string;
   managerName: string;
+  avatarUrl?: string;
 }
 
 export interface MerchantOperationData {

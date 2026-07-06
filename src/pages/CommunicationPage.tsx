@@ -17,10 +17,12 @@ import {
   Pencil, Trash2, AlignLeft, Quote,
   Mic, ImageIcon, Paperclip, SendHorizonal, ChevronRight, Sparkles,
   BookOpen, MapPin, Utensils, Store, BarChart2, Zap, X, FileText, Play, Pause, Square,
+  Brain,
 } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { toast } from 'sonner';
 import { format, subDays, subHours } from 'date-fns';
+import { streamChatCompletions } from '@/services/ai/deepseek';
 
 interface CommRecord {
   id: string;
@@ -57,7 +59,7 @@ const resultConfig = {
   follow_up: { label: '待跟进', icon: RefreshCw,     color: 'text-warning' },
 };
 
-function genMockComms(count = 40): CommRecord[] {
+function genMockComms(count = 5): CommRecord[] {
   const merchants = ['四季香餐厅', '美丽时光美发', '欢乐城娱乐', '如家酒店', '快乐宝贝亲子园', '铁人健身', '洁美生活服务', '阳光口腔'];
   const channels: CommRecord['channel'][] = ['phone', 'wechat', 'face_to_face', 'email'];
   const results: CommRecord['result'][] = ['connected', 'no_answer', 'rejected', 'signed', 'follow_up'];
@@ -226,6 +228,8 @@ function KangarooAdvisor() {
   const [recordingTime, setRecordingTime] = useState(0);
   const [pendingMedia, setPendingMedia] = useState<{ type: 'image' | 'file'; url: string; name: string } | null>(null);
   const [playingVoiceId, setPlayingVoiceId] = useState<string | null>(null);
+  const [selectedMerchant, setSelectedMerchant] = useState('四季香餐厅');
+  
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -241,24 +245,52 @@ function KangarooAdvisor() {
     }, 100);
   };
 
-  const askAssistant = useCallback((text: string, mediaUrl?: string, mediaType?: ChatMessage['type'], fileName?: string) => {
+  const askAssistant = useCallback(async (text: string, mediaUrl?: string, mediaType?: ChatMessage['type'], fileName?: string) => {
     const displayText = text || (mediaType === 'voice' ? '[语音消息]' : mediaType === 'image' ? '[图片]' : fileName || '[文件]');
     const userMsg: ChatMessage = { id: `u-${Date.now()}`, role: 'user', text: displayText, type: mediaType, mediaUrl, fileName };
+    
     setMessages(prev => [...prev, userMsg]);
     setInputText('');
     setPendingMedia(null);
     setIsTyping(true);
     scrollToBottom();
 
-    setTimeout(() => {
-      const matchKey = Object.keys(MOCK_ANSWERS).find(k => displayText.includes(k));
-      const replyText = matchKey ? MOCK_ANSWERS[matchKey] : `感谢您的提问！关于"${displayText}"，AI沟通方案正在为您分析最新行业数据，结合美团平台实时数据与AI模型，为您提供专属经营建议。建议您可以从市场需求、竞争格局和门店运营三个维度综合考量，如需详细报告可点击下方「数据报告」获取完整分析。`;
-      const assistantMsg: ChatMessage = { id: `a-${Date.now()}`, role: 'assistant', text: replyText };
-      setMessages(prev => [...prev, assistantMsg]);
-      setIsTyping(false);
+    const assistantId = `a-${Date.now()}`;
+    let accumulatedText = '';
+    
+    setMessages(prev => [...prev, { id: assistantId, role: 'assistant', text: '' }]);
+    setIsTyping(false);
+
+    const apiHistory = messages.map(m => ({
+      role: m.role as 'system' | 'user' | 'assistant',
+      content: m.text
+    }));
+    apiHistory.push({ role: 'user', content: displayText });
+
+    try {
+      await streamChatCompletions(
+        apiHistory,
+        (chunk) => {
+          accumulatedText += chunk;
+          setMessages(prev => prev.map(m => m.id === assistantId ? { ...m, text: accumulatedText } : m));
+          scrollToBottom();
+        },
+        (fullText) => {
+          setMessages(prev => prev.map(m => m.id === assistantId ? { ...m, text: fullText } : m));
+          scrollToBottom();
+        },
+        (err) => {
+          console.error(err);
+          setMessages(prev => prev.map(m => m.id === assistantId ? { ...m, text: `AI助手调用失败，请检查网络设置或API_KEY配置。\n\n具体错误：${err.message || '未知错误'}` } : m));
+          scrollToBottom();
+        }
+      );
+    } catch (e: any) {
+      console.error(e);
+      setMessages(prev => prev.map(m => m.id === assistantId ? { ...m, text: `系统错误: ${e.message || '调用失败'}` } : m));
       scrollToBottom();
-    }, 1200);
-  }, []);
+    }
+  }, [messages]);
 
   const sendMessage = useCallback((text: string) => {
     const trimmed = text.trim();
@@ -339,6 +371,69 @@ function KangarooAdvisor() {
 
   const showWelcome = messages.length === 0;
 
+  const AI_CAPABILITIES = [
+    { id: 'diagnose', title: 'AI 智能诊断', icon: Brain, desc: '自动识别 12 类经营痛点，定位改善机会', promptText: (mName: string) => `我正在跟进商家【${mName}】，请为该商家做【AI 智能诊断】。请结合其经营数据，自动识别12类经营痛点（如新客不足、老客流存差、曝光偏低等），并给出精准定位改善机会建议。` },
+    { id: 'decision', title: '数据驱动决策', icon: BarChart3, desc: '雷达图综合评估，趋势预测助您提前布局', promptText: (mName: string) => `我正在跟进商家【${mName}】，请为该商家做【数据驱动决策】分析。请评估商家的多维度数据，进行雷达图综合评估，并给出趋势预测以助我提前布局。` },
+    { id: 'script', title: '智能话术生成', icon: MessageSquare, desc: '动态生成个性化沟通话术，支持电话/微信/面谈', promptText: (mName: string) => `我正在跟进商家【${mName}】，请为该商家做【智能话术生成】。根据商家画像，动态生成个性化沟通话术，分别支持电话（30秒话术）、微信（轻触达话术）和面谈（深度异议处理）三种场景。` },
+    { id: 'package', title: '精准套餐推荐', icon: Package, desc: '结合季节、品类、历史数据推算最高 ROI 组合', promptText: (mName: string) => `我正在跟进商家【${mName}】，请为该商家做【精准套餐推荐】。请结合其品类、当前季节和历史数据，推算最适合的、最高 ROI 的推荐套餐与备选套餐组合。` },
+    { id: 'predict', title: '签约预测引擎', icon: TrendingUp, desc: '基于行为轨迹预测接受概率，让访问有的放矢', promptText: (mName: string) => `我正在跟进商家【${mName}】，请为该商家进行【签约预测引擎】意向分析。评估其签约意向概率（如高/中/低），指出正向因素与潜在风险，并给出相应的促签约跟进建议。` },
+    { id: 'track', title: '全链路跟踪', icon: RefreshCw, desc: '沟通记录、跟进提醒、话术反馈闭环不丢商机', promptText: (mName: string) => `我正在跟进商家【${mName}】，请设计【全链路跟踪】跟进闭环方案。包括第一步、第二步、第三步的具体实施动作，并指导如何使用跟进提醒实现商机不流失。` }
+  ];
+
+  const merchants = ['四季香餐厅', '美丽时光美发', '欢乐城娱乐', '如家酒店', '快乐宝贝亲子园'];
+
+  function renderMarkdown(text: string) {
+    if (!text) return <p className="text-muted-foreground italic">正在生成中...</p>;
+    return text.split('\n').map((line, idx) => {
+      const content = line.trim();
+      if (content.startsWith('### ')) {
+        return <h3 key={idx} className="font-bold text-base mt-2 mb-1 text-primary">{content.substring(4)}</h3>;
+      }
+      if (content.startsWith('#### ')) {
+        return <h4 key={idx} className="font-bold text-sm mt-1.5 mb-1 text-foreground">{content.substring(5)}</h4>;
+      }
+      if (content.startsWith('**') && content.endsWith('**')) {
+        return <p key={idx} className="font-bold text-sm mt-1">{content.replace(/\*\*/g, '')}</p>;
+      }
+      if (content.startsWith('- ') || content.startsWith('* ')) {
+        const cleanText = content.substring(2);
+        if (cleanText.includes('**')) {
+          const parts = cleanText.split('**');
+          return (
+            <div key={idx} className="flex items-start gap-1.5 text-xs text-muted-foreground ml-2 my-0.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
+              <span>
+                {parts.map((p, i) => i % 2 === 1 ? <strong key={i} className="font-semibold text-foreground">{p}</strong> : p)}
+              </span>
+            </div>
+          );
+        }
+        return (
+          <div key={idx} className="flex items-start gap-1.5 text-xs text-muted-foreground ml-2 my-0.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
+            <span>{cleanText}</span>
+          </div>
+        );
+      }
+      if (content.startsWith('> ')) {
+        return (
+          <blockquote key={idx} className="border-l-2 border-primary/50 pl-3 italic text-muted-foreground my-1.5 bg-muted/30 py-1 rounded-sm">
+            {content.substring(2)}
+          </blockquote>
+        );
+      }
+      if (content.includes('**')) {
+        const parts = content.split('**');
+        return (
+          <p key={idx} className="my-1">
+            {parts.map((p, i) => i % 2 === 1 ? <strong key={i} className="font-semibold text-foreground">{p}</strong> : p)}
+          </p>
+        );
+      }
+      return <p key={idx} className="my-1">{line}</p>;
+    });
+  }
+
   return (
     <div className="flex flex-col h-full min-h-0" style={{ height: 'calc(100vh - 180px)', minHeight: 520 }}>
       {/* 滚动内容区 */}
@@ -352,8 +447,8 @@ function KangarooAdvisor() {
             >
               <div className="pr-20">
                 <p className="text-base md:text-lg font-black text-foreground leading-snug">
-                  "老板，你好！我可以为您
-                  <br />解答餐饮行业全方位问题。"
+                  "老板，你好！我是袋鼠参谋。
+                  <br />我可以为您提供全链路的智能建议服务。"
                 </p>
               </div>
               {/* 袋鼠吉祥物 SVG */}
@@ -381,20 +476,45 @@ function KangarooAdvisor() {
               </div>
             </motion.div>
 
-            {/* 快捷问题列表 */}
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="space-y-2">
-              {QUICK_QUESTIONS.slice(0, 4).map((q, i) => (
-                <motion.button
-                  key={i}
-                  initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 + i * 0.07 }}
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-muted/50 hover:bg-primary/5 hover:border-primary/20 border border-transparent transition-colors text-left group"
-                  onClick={() => sendMessage(q.text)}
-                >
-                  <q.icon className="w-4 h-4 text-muted-foreground shrink-0 group-hover:text-primary transition-colors" />
-                  <span className="flex-1 text-sm text-foreground">{q.text}</span>
-                  <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0 group-hover:text-primary transition-colors" />
-                </motion.button>
-              ))}
+            {/* 商家选择器 & AI 能力矩阵 */}
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="space-y-3">
+              <div className="flex items-center justify-between bg-muted/30 p-2.5 rounded-xl border border-border">
+                <span className="text-xs font-semibold text-foreground">目标分析商家：</span>
+                <Select value={selectedMerchant} onValueChange={setSelectedMerchant}>
+                  <SelectTrigger className="w-44 h-8 text-xs rounded-md">
+                    <SelectValue placeholder="选择商家" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-md">
+                    {merchants.map(m => (
+                      <SelectItem key={m} value={m} className="text-xs">{m}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                {AI_CAPABILITIES.map((cap, i) => {
+                  const Icon = cap.icon;
+                  return (
+                    <motion.button
+                      key={cap.id}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.15 + i * 0.05 }}
+                      onClick={() => askAssistant(cap.promptText(selectedMerchant))}
+                      className="flex items-start gap-3 p-3 text-left rounded-xl border border-border bg-card hover:bg-primary/5 hover:border-primary/20 transition-all group"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
+                        <Icon className="w-4 h-4 text-primary" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h4 className="font-semibold text-xs text-foreground group-hover:text-primary transition-colors">{cap.title}</h4>
+                        <p className="text-[10px] text-muted-foreground mt-0.5 leading-normal">{cap.desc}</p>
+                      </div>
+                    </motion.button>
+                  );
+                })}
+              </div>
             </motion.div>
           </div>
         ) : (
@@ -408,9 +528,9 @@ function KangarooAdvisor() {
                 >
                   {msg.role === 'assistant' && (
                     <img
-                      src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=120&h=120"
+                      src="/favicon.png"
                       alt="AI"
-                      className="w-8 h-8 rounded-full shrink-0 object-cover"
+                      className="w-8 h-8 rounded-md shrink-0 object-contain p-1 border border-border bg-background"
                     />
                   )}
                   <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed overflow-hidden ${
@@ -432,6 +552,8 @@ function KangarooAdvisor() {
                       <a href={msg.mediaUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 underline break-words">
                         <FileText className="w-4 h-4 shrink-0" /> {msg.fileName || '附件文件'}
                       </a>
+                    ) : msg.role === 'assistant' ? (
+                      renderMarkdown(msg.text)
                     ) : (
                       msg.text
                     )}
@@ -442,9 +564,9 @@ function KangarooAdvisor() {
             {isTyping && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-3">
                 <img
-                  src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=120&h=120"
+                  src="/favicon.png"
                   alt="AI"
-                  className="w-8 h-8 rounded-full shrink-0 object-cover"
+                  className="w-8 h-8 rounded-md shrink-0 object-contain p-1 border border-border bg-background"
                 />
                 <div className="bg-muted rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-1">
                   {[0, 1, 2].map(i => (
@@ -454,17 +576,24 @@ function KangarooAdvisor() {
                 </div>
               </motion.div>
             )}
-            {/* 快捷问题（对话中） */}
-            {!isTyping && messages.length > 0 && messages.length < 6 && (
-              <div className="space-y-1.5 pt-1">
-                <p className="text-xs text-muted-foreground px-1">猜你还想问：</p>
-                {QUICK_QUESTIONS.slice(2, 5).map((q, i) => (
-                  <button key={i} className="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-muted/40 hover:bg-primary/5 border border-transparent hover:border-primary/20 transition-colors text-left"
-                    onClick={() => sendMessage(q.text)}>
-                    <span className="flex-1 text-xs text-foreground">{q.text}</span>
-                    <ChevronRight className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                  </button>
-                ))}
+            
+            {/* Quick Actions at the bottom of messages list */}
+            {!isTyping && messages.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 pt-2 border-t border-border mt-4">
+                <p className="text-[10px] text-muted-foreground w-full mb-1">针对当前商家【{selectedMerchant}】快速执行：</p>
+                {AI_CAPABILITIES.map(cap => {
+                  const Icon = cap.icon;
+                  return (
+                    <button
+                      key={cap.id}
+                      onClick={() => askAssistant(cap.promptText(selectedMerchant))}
+                      className="flex items-center gap-1 px-2.5 py-1 rounded-full border border-border bg-card hover:bg-primary/5 hover:border-primary/20 text-xs text-foreground transition-all"
+                    >
+                      <Icon className="w-3.5 h-3.5 text-primary" />
+                      <span>{cap.title.split(' ')[1] || cap.title}</span>
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>

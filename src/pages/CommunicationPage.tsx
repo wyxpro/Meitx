@@ -17,7 +17,7 @@ import {
   Pencil, Trash2, AlignLeft, Quote,
   Mic, ImageIcon, Paperclip, SendHorizonal, ChevronRight, Sparkles,
   BookOpen, MapPin, Utensils, Store, BarChart2, Zap, X, FileText, Play, Pause, Square,
-  Brain,
+  Brain, Package,
 } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { toast } from 'sonner';

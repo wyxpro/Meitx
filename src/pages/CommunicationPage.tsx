@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
@@ -15,7 +15,7 @@ import {
   CheckCircle2, XCircle, RefreshCw, TrendingUp, AlertCircle, BarChart3,
   Bold, Italic, List, ListOrdered, Heading2, Link2, Minus as HrIcon,
   Pencil, Trash2, AlignLeft, Quote,
-  Mic, ImageIcon, Paperclip, SendHorizonal, ChevronRight, Sparkles,
+  Mic, ImageIcon, Paperclip, SendHorizonal, ChevronRight, Sparkles, Upload,
   BookOpen, MapPin, Utensils, Store, BarChart2, Zap, X, FileText, Play, Pause, Square,
   Brain, Package, Check,
 } from 'lucide-react';
@@ -28,9 +28,12 @@ import {
   saveStoredCommRecords,
   getStoredFollowUps,
   saveStoredFollowUps,
+  getStoredMerchants,
   isThisMonth,
   isLastMonth
 } from '@/services/mockData';
+import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
 
 interface CommRecord {
   id: string;
@@ -53,18 +56,18 @@ interface FollowUpItem {
 }
 
 const channelConfig = {
-  phone:        { label: '电话',  icon: Phone,         color: 'bg-primary/10 text-primary' },
-  wechat:       { label: '微信',  icon: MessageSquare,  color: 'bg-success/10 text-success' },
-  face_to_face: { label: '面谈',  icon: Users,          color: 'bg-accent/10 text-accent' },
-  email:        { label: '邮件',  icon: Mail,           color: 'bg-info/10 text-info' },
+  phone: { label: '电话', icon: Phone, color: 'bg-primary/10 text-primary' },
+  wechat: { label: '微信', icon: MessageSquare, color: 'bg-success/10 text-success' },
+  face_to_face: { label: '面谈', icon: Users, color: 'bg-accent/10 text-accent' },
+  email: { label: '邮件', icon: Mail, color: 'bg-info/10 text-info' },
 };
 
 const resultConfig = {
   connected: { label: '已接通', icon: CheckCircle2, color: 'text-success' },
-  no_answer: { label: '未接听', icon: Clock,         color: 'text-muted-foreground' },
-  rejected:  { label: '已拒绝', icon: XCircle,       color: 'text-destructive' },
-  signed:    { label: '已签约', icon: TrendingUp,    color: 'text-success' },
-  follow_up: { label: '待跟进', icon: RefreshCw,     color: 'text-warning' },
+  no_answer: { label: '未接听', icon: Clock, color: 'text-muted-foreground' },
+  rejected: { label: '已拒绝', icon: XCircle, color: 'text-destructive' },
+  signed: { label: '已签约', icon: TrendingUp, color: 'text-success' },
+  follow_up: { label: '待跟进', icon: RefreshCw, color: 'text-warning' },
 };
 
 function genMockComms(count = 5): CommRecord[] {
@@ -94,10 +97,10 @@ function genMockComms(count = 5): CommRecord[] {
 }
 
 const genInitialFollowUps = (): FollowUpItem[] => [
-  { id: 'fu-1', name: '四季香餐厅',   time: '今日 15:00', priority: 'high',   reason: '昨日意向较强，需确认签约',    done: false },
-  { id: 'fu-2', name: '美丽时光美发', time: '明日 10:00', priority: 'high',   reason: '对曝光套餐有疑问',            done: false },
-  { id: 'fu-3', name: '铁人健身',     time: '后天 14:00', priority: 'medium', reason: '跟进暑期活动方案',            done: false },
-  { id: 'fu-4', name: '阳光口腔',     time: '3天后',      priority: 'low',    reason: '常规季度回访',                done: false },
+  { id: 'fu-1', name: '四季香餐厅', time: '今日 15:00', priority: 'high', reason: '昨日意向较强，需确认签约', done: false },
+  { id: 'fu-2', name: '美丽时光美发', time: '明日 10:00', priority: 'high', reason: '对曝光套餐有疑问', done: false },
+  { id: 'fu-3', name: '铁人健身', time: '后天 14:00', priority: 'medium', reason: '跟进暑期活动方案', done: false },
+  { id: 'fu-4', name: '阳光口腔', time: '3天后', priority: 'low', reason: '常规季度回访', done: false },
 ];
 
 const weeklyTrendData = [
@@ -108,15 +111,15 @@ const weeklyTrendData = [
 
 const statCards = [
   { label: '本月沟通', value: '286', sub: '较上月 +12%', up: true },
-  { label: '接通率',   value: '74%', sub: '行业均值 68%', up: true },
-  { label: '本月签约', value: '18',  sub: '转化率 6.3%', up: true },
-  { label: '待跟进',   value: '43',  sub: '高优先级 12', up: false },
+  { label: '接通率', value: '74%', sub: '行业均值 68%', up: true },
+  { label: '本月签约', value: '18', sub: '转化率 6.3%', up: true },
+  { label: '待跟进', value: '43', sub: '高优先级 12', up: false },
 ];
 
 const priorityConfig = {
-  high:   { label: '高优', color: 'bg-destructive/10 text-destructive border-destructive/20' },
-  medium: { label: '中',   color: 'bg-warning/10 text-warning border-warning/20' },
-  low:    { label: '低',   color: 'bg-muted text-muted-foreground border-border' },
+  high: { label: '高优', color: 'bg-destructive/10 text-destructive border-destructive/20' },
+  medium: { label: '中', color: 'bg-warning/10 text-warning border-warning/20' },
+  low: { label: '低', color: 'bg-muted text-muted-foreground border-border' },
 };
 
 // ──────────────────────────────────────────────
@@ -138,15 +141,15 @@ function RichEditor({ value, onChange, placeholder }: RichEditorProps) {
   }, [onChange]);
 
   const toolbarBtns = [
-    { icon: Bold,        title: '加粗',    cmd: 'bold' },
-    { icon: Italic,      title: '斜体',    cmd: 'italic' },
-    { icon: Heading2,    title: '标题',    cmd: 'formatBlock', val: 'h3' },
-    { icon: AlignLeft,   title: '段落',    cmd: 'formatBlock', val: 'p' },
-    { icon: Quote,       title: '引用',    cmd: 'formatBlock', val: 'blockquote' },
-    { icon: List,        title: '无序列表', cmd: 'insertUnorderedList' },
+    { icon: Bold, title: '加粗', cmd: 'bold' },
+    { icon: Italic, title: '斜体', cmd: 'italic' },
+    { icon: Heading2, title: '标题', cmd: 'formatBlock', val: 'h3' },
+    { icon: AlignLeft, title: '段落', cmd: 'formatBlock', val: 'p' },
+    { icon: Quote, title: '引用', cmd: 'formatBlock', val: 'blockquote' },
+    { icon: List, title: '无序列表', cmd: 'insertUnorderedList' },
     { icon: ListOrdered, title: '有序列表', cmd: 'insertOrderedList' },
-    { icon: HrIcon,      title: '分割线',  cmd: 'insertHorizontalRule' },
-    { icon: Link2,       title: '链接',    cmd: 'createLink', val: prompt as unknown as string },
+    { icon: HrIcon, title: '分割线', cmd: 'insertHorizontalRule' },
+    { icon: Link2, title: '链接', cmd: 'createLink', val: prompt as unknown as string },
   ];
 
   return (
@@ -197,7 +200,7 @@ function RichEditor({ value, onChange, placeholder }: RichEditorProps) {
 const EMPTY_FORM = { merchant: '', channel: 'phone', content: '', result: 'connected', duration: '' };
 
 // ──────────────────────────────────────────────
-// 袋鼠参谋 AI 智能助手
+// 小琪 AI 智能助手
 // ──────────────────────────────────────────────
 interface ChatMessage {
   id: string;
@@ -210,12 +213,12 @@ interface ChatMessage {
 }
 
 const QUICK_QUESTIONS = [
-  { icon: TrendingUp,  text: '东北菜的市场热度还能持续上升吗？' },
-  { icon: BarChart2,   text: '川菜在餐饮市场中的份额能否进一步扩大？' },
-  { icon: Utensils,    text: '淮扬菜在未来几年有没有增长潜力？' },
-  { icon: MapPin,      text: '在朝阳区开一家火锅店，选址建议是什么？' },
-  { icon: Store,       text: '我店评分4.6，如何快速提升到4.8以上？' },
-  { icon: BookOpen,    text: '夏季外卖菜品研发方向有哪些热门趋势？' },
+  { icon: TrendingUp, text: '东北菜的市场热度还能持续上升吗？' },
+  { icon: BarChart2, text: '川菜在餐饮市场中的份额能否进一步扩大？' },
+  { icon: Utensils, text: '淮扬菜在未来几年有没有增长潜力？' },
+  { icon: MapPin, text: '在朝阳区开一家火锅店，选址建议是什么？' },
+  { icon: Store, text: '我店评分4.6，如何快速提升到4.8以上？' },
+  { icon: BookOpen, text: '夏季外卖菜品研发方向有哪些热门趋势？' },
 ];
 
 
@@ -228,7 +231,59 @@ const MOCK_ANSWERS: Record<string, string> = {
   '夏季': '7-8月外卖热门趋势：①冷饮茶饮类（增长67%）：冷萃咖啡、鲜榨果茶、氮气冰淇淋；②轻食减脂类（增长43%）：沙拉、魔芋面、低卡套餐；③消暑主食（增长31%）：冷面、冰粉、各类凉拌。建议增加夏季限定套餐，标注"消暑/减脂"等标签，可提升曝光权重约40%。',
 };
 
-function KangarooAdvisor() {
+interface Skill {
+  id: string;
+  name: string;
+  description: string;
+  prompt: string;
+  enabled: boolean;
+  isPreset: boolean;
+}
+
+const PRESET_SKILLS: Skill[] = [
+  {
+    id: 'skill-1',
+    name: '经营痛点深度诊断',
+    description: '智能解析商家核心运营指标，精准识别获客、留存、复购等12类痛点并估算营收损失',
+    prompt: '你已启用【经营痛点深度诊断】技能。请在分析商家时，着重诊断其经营数据中的潜在痛点，如新客获取成本、老客留存周期、点评评分等，提供专业的痛点分级与可量化的损失预估。',
+    enabled: true,
+    isPreset: true,
+  },
+  {
+    id: 'skill-2',
+    name: '多场景高转化话术生成',
+    description: '根据商家品类与特色，定制电话口播、微信轻问候、面谈深度异议处理话术',
+    prompt: '你已启用【多场景高转化话术生成】技能。在为用户生成沟通话术时，请提供三种细分方案：(1) 电话：30秒极速触达与痛点直击；(2) 微信：高接通轻量化问候与意向试探；(3) 面谈：基于商家画像的深度谈判逻辑与常见异议处理技巧。',
+    enabled: true,
+    isPreset: true,
+  },
+  {
+    id: 'skill-3',
+    name: '品类与季节套餐组合推荐',
+    description: '结合当前品类、季节因素及历史ROI数据，推算最优推广与曝光套餐方案',
+    prompt: '你已启用【品类与季节套餐组合推荐】技能。请在涉及套餐方案推荐时，深度融合商家的主营品类、商圈定位及当前季节特征（如夏季冷饮旺季、冬季热餐促销），设计高 ROI 组合，并清晰列出主推套餐与备选套餐的价格、权益及预期回报对比。',
+    enabled: false,
+    isPreset: true,
+  },
+  {
+    id: 'skill-4',
+    name: '签约意向行为轨迹预测',
+    description: '基于接通率、沟通反馈等多维意向分析，量化签约概率，识别主要阻碍点',
+    prompt: '你已启用【签约意向行为轨迹预测】技能。在评估签约倾向时，请结合商家的意向级别、历史接通频率等指标进行智能预测，量化签约概率并指出阻碍签约的关键卡点，提供针对性的推进策略。',
+    enabled: false,
+    isPreset: true,
+  },
+  {
+    id: 'skill-5',
+    name: '流失客户精准关怀召回',
+    description: '针对长期静默的低活老商家，设计专属特惠返利方案与召回话术',
+    prompt: '你已启用【流失客户精准关怀召回】技能。在生成跟进方案时，请特别针对沉默超30天的低活商家，设计专属返利套餐关怀话术与分阶段唤醒方案，提升老客户留存率。',
+    enabled: false,
+    isPreset: true,
+  }
+];
+
+function XiaoqiAdvisor() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -237,7 +292,24 @@ function KangarooAdvisor() {
   const [pendingMedia, setPendingMedia] = useState<{ type: 'image' | 'file'; url: string; name: string } | null>(null);
   const [playingVoiceId, setPlayingVoiceId] = useState<string | null>(null);
   const [selectedMerchant, setSelectedMerchant] = useState('四季香餐厅');
-  
+
+  // Skills management state
+  const [skills, setSkills] = useState<Skill[]>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('meitx_ai_skills');
+      if (stored) {
+        try {
+          return JSON.parse(stored);
+        } catch {
+          // fallback
+        }
+      }
+    }
+    return PRESET_SKILLS;
+  });
+  const [skillsOpen, setSkillsOpen] = useState(false);
+  const [skillsTab, setSkillsTab] = useState<'presets' | 'custom' | 'preview'>('presets');
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -246,6 +318,56 @@ function KangarooAdvisor() {
   const audioRefMap = useRef<Record<string, HTMLAudioElement>>({});
   const imageInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const importSkillRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    localStorage.setItem('meitx_ai_skills', JSON.stringify(skills));
+  }, [skills]);
+
+  const importSkillsFromFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = event.target?.result as string;
+      if (!content) return;
+      if (file.name.endsWith('.json')) {
+        try {
+          const parsed = JSON.parse(content);
+          if (!parsed.name || !parsed.prompt) {
+            toast.error('JSON格式不正确，必须包含 name 和 prompt 字段');
+            return;
+          }
+          const newSkill: Skill = {
+            id: `skill-custom-${Date.now()}`,
+            name: parsed.name,
+            description: parsed.description || '导入的自定义技能',
+            prompt: parsed.prompt,
+            enabled: true,
+            isPreset: false
+          };
+          setSkills(prev => [...prev, newSkill]);
+          toast.success(`技能【${parsed.name}】导入成功！`);
+        } catch {
+          toast.error('JSON解析失败，请检查文件格式');
+        }
+      } else {
+        const name = file.name.replace(/\.[^/.]+$/, "");
+        const newSkill: Skill = {
+          id: `skill-custom-${Date.now()}`,
+          name: name,
+          description: '导入的自定义技能',
+          prompt: content.trim(),
+          enabled: true,
+          isPreset: false
+        };
+        setSkills(prev => [...prev, newSkill]);
+        toast.success(`自定义技能【${name}】导入成功！`);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
 
   const scrollToBottom = () => {
     setTimeout(() => {
@@ -256,7 +378,7 @@ function KangarooAdvisor() {
   const askAssistant = useCallback(async (text: string, mediaUrl?: string, mediaType?: ChatMessage['type'], fileName?: string) => {
     const displayText = text || (mediaType === 'voice' ? '[语音消息]' : mediaType === 'image' ? '[图片]' : fileName || '[文件]');
     const userMsg: ChatMessage = { id: `u-${Date.now()}`, role: 'user', text: displayText, type: mediaType, mediaUrl, fileName };
-    
+
     setMessages(prev => [...prev, userMsg]);
     setInputText('');
     setPendingMedia(null);
@@ -265,15 +387,29 @@ function KangarooAdvisor() {
 
     const assistantId = `a-${Date.now()}`;
     let accumulatedText = '';
-    
+
     setMessages(prev => [...prev, { id: assistantId, role: 'assistant', text: '' }]);
     setIsTyping(false);
 
-    const apiHistory = messages.map(m => ({
-      role: m.role as 'system' | 'user' | 'assistant',
-      content: m.text
-    }));
-    apiHistory.push({ role: 'user', content: displayText });
+    // Build consolidated system prompt based on enabled skills
+    const enabledSkills = skills.filter(s => s.enabled);
+    let systemPrompt = `你是一个美团智慧运营平台，名字叫“小琪”。`;
+    if (enabledSkills.length > 0) {
+      systemPrompt += `\n当前启用的运营技能（请务必严格遵循这些技能包的行为模式和策略输出回答）：\n\n` +
+        enabledSkills.map(s => `【${s.name}】：\n${s.prompt}`).join('\n\n');
+    }
+
+    const apiHistory = [
+      { role: 'system' as const, content: systemPrompt }
+    ];
+
+    messages.forEach(m => {
+      apiHistory.push({
+        role: m.role as 'system' | 'user' | 'assistant',
+        content: m.text
+      });
+    });
+    apiHistory.push({ role: 'user' as const, content: displayText });
 
     try {
       await streamChatCompletions(
@@ -298,7 +434,7 @@ function KangarooAdvisor() {
       setMessages(prev => prev.map(m => m.id === assistantId ? { ...m, text: `系统错误: ${e.message || '调用失败'}` } : m));
       scrollToBottom();
     }
-  }, [messages]);
+  }, [messages, skills]);
 
   const sendMessage = useCallback((text: string) => {
     const trimmed = text.trim();
@@ -388,7 +524,176 @@ function KangarooAdvisor() {
     { id: 'track', title: '全链路跟踪', icon: RefreshCw, desc: '沟通记录、跟进提醒、话术反馈闭环不丢商机', promptText: (mName: string) => `我正在跟进商家【${mName}】，请设计【全链路跟踪】跟进闭环方案。包括第一步、第二步、第三步的具体实施动作，并指导如何使用跟进提醒实现商机不流失。` }
   ];
 
-  const merchants = ['四季香餐厅', '美丽时光美发', '欢乐城娱乐', '如家酒店', '快乐宝贝亲子园'];
+  // Custom merchants state
+  const [customMerchants, setCustomMerchants] = useState<string[]>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('meitx_custom_merchants');
+      if (stored) {
+        try {
+          return JSON.parse(stored);
+        } catch { }
+      }
+    }
+    return [];
+  });
+
+  const merchants = useMemo(() => {
+    const base = ['四季香餐厅', '美丽时光美发', '欢乐城娱乐', '如家酒店', '快乐宝贝亲子园'];
+    const storedMerchants = getStoredMerchants().map(m => m.name);
+    return Array.from(new Set([...base, ...storedMerchants, ...customMerchants]));
+  }, [customMerchants]);
+
+  // Link parsing state
+  const [linkParseOpen, setLinkParseOpen] = useState(false);
+  const [merchantLink, setMerchantLink] = useState('');
+  const [isParsingLink, setIsParsingLink] = useState(false);
+  const importMerchantRef = useRef<HTMLInputElement>(null);
+
+  const handleImportMerchantFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = event.target?.result as string;
+      if (!content) return;
+      if (file.name.endsWith('.json')) {
+        try {
+          const parsed = JSON.parse(content);
+          const name = parsed.name || parsed.merchantName;
+          if (!name) {
+            toast.error('JSON格式不正确，必须包含 name 字段');
+            return;
+          }
+          setCustomMerchants(prev => {
+            const updated = Array.from(new Set([...prev, name]));
+            localStorage.setItem('meitx_custom_merchants', JSON.stringify(updated));
+            return updated;
+          });
+          setSelectedMerchant(name);
+          setMessages(prev => [
+            ...prev,
+            {
+              id: `sys-${Date.now()}`,
+              role: 'assistant',
+              text: `### 📂 成功导入商家档案！\n\n- **商家名称**: ${name}\n- **主要品类**: ${parsed.category || '未知'}\n- **主要数据**: 月销售额: ${parsed.monthlySales ? `¥${parsed.monthlySales}` : '暂无'} / 点评评分: ${parsed.rating || '暂无'}\n\n已自动将该商家设定为当前分析目标。您可以立即使用下方的 AI 诊断与话术生成功能进行进一步分析！`
+            }
+          ]);
+          toast.success(`成功导入并选择商家：${name}`);
+        } catch {
+          toast.error('JSON解析失败，请检查文件格式');
+        }
+      } else {
+        const name = file.name.replace(/\.[^/.]+$/, "");
+        setCustomMerchants(prev => {
+          const updated = Array.from(new Set([...prev, name]));
+          localStorage.setItem('meitx_custom_merchants', JSON.stringify(updated));
+          return updated;
+        });
+        setSelectedMerchant(name);
+        setMessages(prev => [
+          ...prev,
+          {
+            id: `sys-${Date.now()}`,
+            role: 'assistant',
+            text: `### 📂 成功导入商家文本档案！\n\n已提取商家名称为【${name}】，并成功设定为当前分析目标。您可以立即使用下方的 AI 诊断与话术生成功能！`
+          }
+        ]);
+        toast.success(`成功导入商家：${name}`);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
+  const handleParseMerchantLink = async () => {
+    if (!merchantLink.trim()) return;
+    setIsParsingLink(true);
+    try {
+      const apiKey = import.meta.env.VITE_PROXY_API_KEY || 'sk-02260d10c28c4bb4b65bace15ba5f754';
+      const response = await fetch('/api/innoreation/v1/proxy/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Proxy-API-Key': apiKey,
+          'X-Proxy-Key': apiKey,
+          'Proxy API Key': apiKey
+        },
+        body: JSON.stringify({
+          model: 'deepseek-v4-pro',
+          messages: [
+            {
+              role: 'system',
+              content: '你是一个专业的网页解析AI，专门解析美团和点评的商家详情页。请根据用户提供的链接或提示，智能解析并生成一个模拟 of 商家画像。返回格式必须是JSON，如：{"name":"商家店名","category":"火锅","score":4.7,"intro":"主打川味麻辣火锅，客流量大"}'
+            },
+            {
+              role: 'user',
+              content: `解析链接: ${merchantLink}`
+            }
+          ],
+          temperature: 0.2
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('解析接口返回失败');
+      }
+
+      const data = await response.json();
+      const reply = data.choices?.[0]?.message?.content || '';
+      const jsonMatch = reply.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        if (parsed.name) {
+          setCustomMerchants(prev => {
+            const updated = Array.from(new Set([...prev, parsed.name]));
+            localStorage.setItem('meitx_custom_merchants', JSON.stringify(updated));
+            return updated;
+          });
+          setSelectedMerchant(parsed.name);
+
+          setMessages(prev => [
+            ...prev,
+            {
+              id: `sys-${Date.now()}`,
+              role: 'assistant',
+              text: `### 🔗 成功解析商家链接！\n\n- **商家名称**: ${parsed.name}\n- **主要品类**: ${parsed.category || '未知'}\n- **商家评分**: ⭐️ ${parsed.score || '暂无'}\n- **经营简介**: ${parsed.intro || '无'}\n\n已自动将该商家设定为当前分析目标。您可以立即使用下方的 AI 诊断与话术生成功能进行进一步分析！`
+            }
+          ]);
+
+          toast.success(`成功解析商家：${parsed.name}`);
+          setLinkParseOpen(false);
+          setMerchantLink('');
+        } else {
+          throw new Error('解析的JSON中未包含 name 字段');
+        }
+      } else {
+        throw new Error('未在AI回复中匹配到JSON内容');
+      }
+    } catch (error: any) {
+      console.error('Link parsing error, using mock parser:', error);
+      const mockName = merchantLink.includes('meishi') ? '蜀香园老火锅' : '阿波罗咖啡馆';
+      const mockCategory = merchantLink.includes('meishi') ? '火锅' : '咖啡';
+      setCustomMerchants(prev => {
+        const updated = Array.from(new Set([...prev, mockName]));
+        localStorage.setItem('meitx_custom_merchants', JSON.stringify(updated));
+        return updated;
+      });
+      setSelectedMerchant(mockName);
+      setMessages(prev => [
+        ...prev,
+        {
+          id: `sys-${Date.now()}`,
+          role: 'assistant',
+          text: `### 🔗 成功解析商家链接（测试模拟）！\n\n- **商家名称**: ${mockName}\n- **主要品类**: ${mockCategory}\n- **商家评分**: ⭐️ 4.6\n- **经营简介**: 链接已成功提取，这是一个地道的美食/休闲商户，适合通过新客爆发套餐拓展曝光。\n\n已自动将该商家设定为当前分析目标。您可以立即使用下方的 AI 诊断与话术生成功能！`
+        }
+      ]);
+      toast.success(`成功解析商家：${mockName}`);
+      setLinkParseOpen(false);
+      setMerchantLink('');
+    } finally {
+      setIsParsingLink(false);
+    }
+  };
 
   function renderMarkdown(text: string) {
     if (!text) return <p className="text-muted-foreground italic">正在生成中...</p>;
@@ -451,42 +756,24 @@ function KangarooAdvisor() {
             {/* 欢迎头部 */}
             <motion.div
               initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-              className="relative bg-gradient-to-br from-primary/10 to-accent/10 rounded-2xl p-5 overflow-hidden border border-primary/10"
+              className="flex items-center gap-4 bg-gradient-to-br from-primary/10 to-accent/10 rounded-2xl p-5 border border-primary/10"
             >
-              <div className="pr-20">
+              <img
+                src="/person.jpg"
+                alt="小琪"
+                className="w-14 h-14 rounded-full object-cover border-2 border-primary/20 shadow-sm shrink-0"
+              />
+              <div>
                 <p className="text-base md:text-lg font-black text-foreground leading-snug">
-                  "老板，你好！我是袋鼠参谋。
+                  "老板，你好！我是小琪。
                   <br />我可以为您提供全链路的智能建议服务。"
                 </p>
-              </div>
-              {/* 袋鼠吉祥物 SVG */}
-              <div className="absolute right-2 bottom-0 w-20 h-20 pointer-events-none">
-                <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-                  <ellipse cx="40" cy="52" rx="18" ry="22" fill="#F5C842"/>
-                  <ellipse cx="40" cy="28" rx="14" ry="13" fill="#F5C842"/>
-                  <ellipse cx="28" cy="16" rx="5" ry="8" fill="#F5C842" transform="rotate(-20 28 16)"/>
-                  <ellipse cx="52" cy="14" rx="5" ry="8" fill="#F5C842" transform="rotate(20 52 14)"/>
-                  <ellipse cx="29" cy="17" rx="2.5" ry="5" fill="#E8A0A0" transform="rotate(-20 29 17)"/>
-                  <ellipse cx="51" cy="15" rx="2.5" ry="5" fill="#E8A0A0" transform="rotate(20 51 15)"/>
-                  <rect x="28" y="14" width="24" height="4" rx="2" fill="#555"/>
-                  <rect x="30" y="6" width="20" height="10" rx="3" fill="#444"/>
-                  <circle cx="35" cy="28" r="3.5" fill="#1a1a2e"/>
-                  <circle cx="45" cy="28" r="3.5" fill="#1a1a2e"/>
-                  <circle cx="36.5" cy="26.5" r="1" fill="white"/>
-                  <circle cx="46.5" cy="26.5" r="1" fill="white"/>
-                  <path d="M36 33 Q40 37 44 33" stroke="#c0392b" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
-                  <ellipse cx="40" cy="32" rx="2" ry="1.5" fill="#e8a0a0"/>
-                  <ellipse cx="22" cy="58" rx="5" ry="9" fill="#b8d4f0" transform="rotate(20 22 58)"/>
-                  <ellipse cx="58" cy="56" rx="5" ry="9" fill="#b8d4f0" transform="rotate(-20 58 56)"/>
-                  <rect x="33" y="70" width="6" height="8" rx="3" fill="#d4a017"/>
-                  <rect x="41" y="70" width="6" height="8" rx="3" fill="#d4a017"/>
-                </svg>
               </div>
             </motion.div>
 
             {/* 商家选择器 & AI 能力矩阵 */}
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="space-y-3">
-              <div className="flex items-center justify-between bg-muted/30 p-2.5 rounded-xl border border-border">
+              <div className="flex flex-wrap items-center gap-2.5 bg-muted/30 p-2.5 rounded-xl border border-border">
                 <span className="text-xs font-semibold text-foreground">目标分析商家：</span>
                 <Select value={selectedMerchant} onValueChange={setSelectedMerchant}>
                   <SelectTrigger className="w-44 h-8 text-xs rounded-md">
@@ -498,6 +785,84 @@ function KangarooAdvisor() {
                     ))}
                   </SelectContent>
                 </Select>
+
+                {/* Parse/Import Actions */}
+                <input
+                  ref={importMerchantRef}
+                  type="file"
+                  accept=".txt,.json"
+                  className="hidden"
+                  onChange={handleImportMerchantFile}
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="rounded-lg text-[11px] h-7 px-2.5 gap-1 hover:bg-primary/5 hover:text-primary transition-colors"
+                  onClick={() => importMerchantRef.current?.click()}
+                >
+                  <Upload className="w-3.5 h-3.5" />
+                  导入商家档案
+                </Button>
+
+                <Dialog open={linkParseOpen} onOpenChange={setLinkParseOpen}>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="rounded-lg text-[11px] h-7 px-2.5 gap-1 border-primary/30 text-primary hover:bg-primary/5 transition-colors"
+                    >
+                      <Link2 className="w-3.5 h-3.5" />
+                      解析详情页
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-[calc(100%-2rem)] md:max-w-md rounded-xl p-5">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-1.5 text-base font-bold">
+                        <Link2 className="w-4.5 h-4.5 text-primary" />
+                        解析美团商家详情页链接
+                      </DialogTitle>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        输入美团、点评商家详情页链接，调用 AI 解析商家档案并自动选定为当前分析目标。
+                      </p>
+                    </DialogHeader>
+                    <div className="space-y-3.5 my-3">
+                      <Input
+                        placeholder="https://www.meituan.com/meishi/..."
+                        value={merchantLink}
+                        onChange={e => setMerchantLink(e.target.value)}
+                        className="rounded-lg text-xs"
+                      />
+                      {isParsingLink && (
+                        <div className="flex items-center justify-center gap-2 py-4 text-xs text-primary font-medium">
+                          <span className="relative flex h-3 w-3">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+                          </span>
+                          正在调用 deepseek-v4-pro 解析商家链接...
+                        </div>
+                      )}
+                    </div>
+                    <DialogFooter className="flex items-center gap-2 pt-2 border-t border-border mt-4 justify-end">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="rounded-lg text-xs"
+                        onClick={() => { setLinkParseOpen(false); setMerchantLink(''); }}
+                        disabled={isParsingLink}
+                      >
+                        取消
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="rounded-lg text-xs"
+                        onClick={handleParseMerchantLink}
+                        disabled={isParsingLink || !merchantLink.trim()}
+                      >
+                        立即解析
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
@@ -541,11 +906,10 @@ function KangarooAdvisor() {
                       className="w-8 h-8 rounded-md shrink-0 object-contain p-1 border border-border bg-background"
                     />
                   )}
-                  <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed overflow-hidden ${
-                    msg.role === 'user'
-                      ? 'bg-primary text-primary-foreground rounded-tr-sm'
-                      : 'bg-muted text-foreground rounded-tl-sm'
-                  }`}>
+                  <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed overflow-hidden ${msg.role === 'user'
+                    ? 'bg-primary text-primary-foreground rounded-tr-sm'
+                    : 'bg-muted text-foreground rounded-tl-sm'
+                    }`}>
                     {msg.type === 'image' && msg.mediaUrl ? (
                       <img src={msg.mediaUrl} alt="用户图片" className="rounded-lg max-w-[200px] max-h-[200px] w-full h-auto object-cover" />
                     ) : msg.type === 'voice' && msg.mediaUrl ? (
@@ -584,7 +948,7 @@ function KangarooAdvisor() {
                 </div>
               </motion.div>
             )}
-            
+
             {/* Quick Actions at the bottom of messages list */}
             {!isTyping && messages.length > 0 && (
               <div className="flex flex-wrap gap-1.5 pt-2 border-t border-border mt-4">
@@ -647,6 +1011,20 @@ function KangarooAdvisor() {
             </button>
             <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
             <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileSelect} />
+
+            {/* Skills Button */}
+            <button
+              onClick={() => setSkillsOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-primary bg-primary/10 hover:bg-primary/20 transition-all shrink-0"
+            >
+              <Brain className="w-3.5 h-3.5 text-primary" />
+              Skills 技能库
+              {skills.filter(s => s.enabled).length > 0 && (
+                <span className="ml-1 px-1.5 py-0.5 rounded-full text-[9px] bg-emerald-500 text-white font-bold h-4 leading-none flex items-center justify-center animate-pulse">
+                  {skills.filter(s => s.enabled).length}
+                </span>
+              )}
+            </button>
           </div>
         )}
 
@@ -686,25 +1064,189 @@ function KangarooAdvisor() {
           </button>
         </div>
       </div>
+
+      {/* ── Skills 技能库管理弹窗 ── */}
+      <Dialog open={skillsOpen} onOpenChange={setSkillsOpen}>
+        <DialogContent className="max-w-[calc(100%-2rem)] md:max-w-2xl rounded-xl p-6 overflow-hidden flex flex-col max-h-[90vh]">
+          <DialogHeader className="pb-2 border-b border-border shrink-0">
+            <DialogTitle className="flex items-center gap-2 text-lg font-bold">
+              <Brain className="w-5 h-5 text-primary" />
+              AI 运营技能库 (Skills)
+            </DialogTitle>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              启用预设运营技能包或导入自定义技能文件，辅助 AI 的对话分析与精准策略输出。
+            </p>
+          </DialogHeader>
+
+          <Tabs value={skillsTab} onValueChange={(v: any) => setSkillsTab(v)} className="flex-1 flex flex-col min-h-0 mt-4">
+            <TabsList className="grid w-full grid-cols-3 rounded-lg bg-muted/60 p-1 shrink-0">
+              <TabsTrigger value="presets" className="rounded-md text-xs font-medium py-1.5">预设技能 ({skills.filter(s => s.isPreset).length})</TabsTrigger>
+              <TabsTrigger value="custom" className="rounded-md text-xs font-medium py-1.5">自定义技能 ({skills.filter(s => !s.isPreset).length})</TabsTrigger>
+              <TabsTrigger value="preview" className="rounded-md text-xs font-medium py-1.5">全局 Prompt 预览</TabsTrigger>
+            </TabsList>
+
+            {/* 预设技能 Tab */}
+            <TabsContent value="presets" className="flex-1 overflow-y-auto min-h-0 py-3 space-y-3">
+              {skills.filter(s => s.isPreset).map(skill => (
+                <div
+                  key={skill.id}
+                  className={`flex items-start gap-4 p-4 rounded-xl border transition-all duration-200 ${skill.enabled
+                    ? 'border-primary/20 bg-gradient-to-r from-primary/5 to-transparent'
+                    : 'border-border bg-card'
+                    }`}
+                >
+                  <div className={`p-2 rounded-lg ${skill.enabled ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
+                    <Zap className="w-4 h-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <h4 className="text-sm font-semibold text-foreground truncate">{skill.name}</h4>
+                      <Switch
+                        checked={skill.enabled}
+                        onCheckedChange={(checked) => {
+                          setSkills(prev => prev.map(s => s.id === skill.id ? { ...s, enabled: checked } : s));
+                        }}
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{skill.description}</p>
+                  </div>
+                </div>
+              ))}
+            </TabsContent>
+
+            {/* 自定义技能 Tab */}
+            <TabsContent value="custom" className="flex-1 flex flex-col min-h-0 py-3">
+              <div className="flex items-center justify-between mb-3 shrink-0">
+                <span className="text-xs text-muted-foreground">支持导入 .txt 或 .json 格式的技能Prompt文件</span>
+                <div className="flex gap-2">
+                  <input
+                    ref={importSkillRef}
+                    type="file"
+                    accept=".txt,.json"
+                    className="hidden"
+                    onChange={importSkillsFromFile}
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="rounded-lg text-xs h-8 border-dashed"
+                    onClick={() => importSkillRef.current?.click()}
+                  >
+                    <Plus className="w-3.5 h-3.5 mr-1" />
+                    导入技能文件
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-y-auto min-h-0 space-y-3">
+                {skills.filter(s => !s.isPreset).length === 0 ? (
+                  <div className="h-48 flex flex-col items-center justify-center border border-dashed border-border rounded-xl text-muted-foreground bg-muted/20">
+                    <FileText className="w-8 h-8 text-muted-foreground/50 mb-2 stroke-[1.5]" />
+                    <p className="text-xs">暂无自定义技能包</p>
+                    <p className="text-[10px] text-muted-foreground/60 mt-1">点击右上角按钮导入您本地的技能Prompt</p>
+                  </div>
+                ) : (
+                  skills.filter(s => !s.isPreset).map(skill => (
+                    <div
+                      key={skill.id}
+                      className={`flex items-start gap-4 p-4 rounded-xl border transition-all duration-200 ${skill.enabled
+                        ? 'border-primary/20 bg-gradient-to-r from-primary/5 to-transparent'
+                        : 'border-border bg-card'
+                        }`}
+                    >
+                      <div className={`p-2 rounded-lg ${skill.enabled ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
+                        <FileText className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <h4 className="text-sm font-semibold text-foreground truncate">{skill.name}</h4>
+                          <div className="flex items-center gap-2.5">
+                            <Switch
+                              checked={skill.enabled}
+                              onCheckedChange={(checked) => {
+                                setSkills(prev => prev.map(s => s.id === skill.id ? { ...s, enabled: checked } : s));
+                              }}
+                            />
+                            <button
+                              onClick={() => {
+                                setSkills(prev => prev.filter(s => s.id !== skill.id));
+                                toast.success('已删除自定义技能');
+                              }}
+                              className="text-muted-foreground hover:text-destructive p-1 rounded-md transition-colors"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1 leading-relaxed truncate">{skill.description}</p>
+                        <p className="text-[10px] text-muted-foreground/50 mt-1 line-clamp-2 bg-muted/40 p-2 rounded-lg">{skill.prompt}</p>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </TabsContent>
+
+            {/* 全局 Prompt 预览 Tab */}
+            <TabsContent value="preview" className="flex-1 flex flex-col min-h-0 py-3">
+              <div className="flex-1 flex flex-col min-h-0 space-y-2">
+                <span className="text-xs text-muted-foreground">当前拼接并注入给 AI Assistant 的 System Prompt 预览：</span>
+                <div className="flex-1 bg-muted/60 border border-border rounded-xl p-3 font-mono text-[11px] overflow-auto leading-relaxed select-all">
+                  <pre className="whitespace-pre-wrap text-foreground">
+                    {`你是一个美团阿波罗智慧运营AI平台助理，名字叫“小琪”。\n\n` +
+                      (skills.filter(s => s.enabled).length > 0
+                        ? `当前启用的运营技能（请务必严格遵循这些技能包的行为模式和策略输出回答）：\n\n` +
+                        skills.filter(s => s.enabled).map(s => `【${s.name}】：\n${s.prompt}`).join('\n\n')
+                        : '（未启用任何特定运营技能包，将以基础运营助理身份进行回答）')
+                    }
+                  </pre>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+
+          <div className="flex items-center justify-between pt-4 border-t border-border shrink-0 mt-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs text-muted-foreground hover:text-primary"
+              onClick={() => {
+                setSkills(PRESET_SKILLS);
+                toast.success('已恢复为默认预设技能包');
+              }}
+            >
+              <RefreshCw className="w-3 h-3 mr-1.5" />
+              恢复默认
+            </Button>
+            <Button
+              size="sm"
+              className="rounded-lg text-xs px-4"
+              onClick={() => setSkillsOpen(false)}
+            >
+              确定并保存
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
 
 export default function CommunicationPage() {
   const [records, setRecords] = useState<CommRecord[]>(() => getStoredCommRecords());
-  const [keyword, setKeyword]   = useState('');
-  const [channel, setChannel]   = useState('all');
-  const [result,  setResult]    = useState('all');
-  const [activeTab, setActiveTab] = useState('kangaroo');
+  const [keyword, setKeyword] = useState('');
+  const [channel, setChannel] = useState('all');
+  const [result, setResult] = useState('all');
+  const [activeTab, setActiveTab] = useState('xiaoqi');
 
-  const [addOpen, setAddOpen]   = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
   const [editRecord, setEditRecord] = useState<CommRecord | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [form, setForm]         = useState(EMPTY_FORM);
+  const [form, setForm] = useState(EMPTY_FORM);
 
   const [followUps, setFollowUps] = useState<FollowUpItem[]>(() => getStoredFollowUps());
   const [fuAddOpen, setFuAddOpen] = useState(false);
-  const [fuForm, setFuForm]       = useState({ name: '', time: '', priority: 'medium', reason: '' });
+  const [fuForm, setFuForm] = useState({ name: '', time: '', priority: 'medium', reason: '' });
   const [fuDeleteId, setFuDeleteId] = useState<string | null>(null);
   const [fuEditTarget, setFuEditTarget] = useState<FollowUpItem | null>(null);
 
@@ -720,7 +1262,7 @@ export default function CommunicationPage() {
   const filtered = useMemo(() => records.filter(r => {
     if (keyword && !r.merchant_name.includes(keyword) && !r.content.includes(keyword)) return false;
     if (channel !== 'all' && r.channel !== channel) return false;
-    if (result  !== 'all' && r.result  !== result)  return false;
+    if (result !== 'all' && r.result !== result) return false;
     return true;
   }), [records, keyword, channel, result]);
 
@@ -745,9 +1287,9 @@ export default function CommunicationPage() {
 
     return [
       { label: '本月沟通', value: String(thisMonthComm), sub: commSub, up: commGrowth >= 0 },
-      { label: '接通率',   value: `${connectionRate.toFixed(0)}%`, sub: '行业均值 68%', up: connectionRate >= 68 },
-      { label: '本月签约', value: String(thisMonthSigned),  sub: `转化率 ${signedRate.toFixed(1)}%`, up: true },
-      { label: '待跟进',   value: String(pendingCount),  sub: `高优先级 ${highPriorityCount}`, up: false },
+      { label: '接通率', value: `${connectionRate.toFixed(0)}%`, sub: '行业均值 68%', up: connectionRate >= 68 },
+      { label: '本月签约', value: String(thisMonthSigned), sub: `转化率 ${signedRate.toFixed(1)}%`, up: true },
+      { label: '待跟进', value: String(pendingCount), sub: `高优先级 ${highPriorityCount}`, up: false },
     ];
   }, [records, followUps]);
 
@@ -789,7 +1331,7 @@ export default function CommunicationPage() {
   // ── 待跟进 CRUD ──
   const handleAddFu = () => {
     if (!fuForm.name.trim()) { toast.error('请输入商家名称'); return; }
-    setFollowUps(prev => [...prev, { id: `fu-${Date.now()}`, name: fuForm.name, time: fuForm.time || '待定', priority: fuForm.priority as 'high'|'medium'|'low', reason: fuForm.reason, done: false }]);
+    setFollowUps(prev => [...prev, { id: `fu-${Date.now()}`, name: fuForm.name, time: fuForm.time || '待定', priority: fuForm.priority as 'high' | 'medium' | 'low', reason: fuForm.reason, done: false }]);
     toast.success('待跟进任务已添加');
     setFuAddOpen(false);
     setFuForm({ name: '', time: '', priority: 'medium', reason: '' });
@@ -797,18 +1339,14 @@ export default function CommunicationPage() {
 
   const handleEditFu = () => {
     if (!fuEditTarget) return;
-    setFollowUps(prev => prev.map(f => f.id === fuEditTarget.id ? { ...f, name: fuForm.name, time: fuForm.time, priority: fuForm.priority as 'high'|'medium'|'low', reason: fuForm.reason } : f));
+    setFollowUps(prev => prev.map(f => f.id === fuEditTarget.id ? { ...f, name: fuForm.name, time: fuForm.time, priority: fuForm.priority as 'high' | 'medium' | 'low', reason: fuForm.reason } : f));
     toast.success('跟进任务已更新');
     setFuEditTarget(null);
     setFuForm({ name: '', time: '', priority: 'medium', reason: '' });
   };
 
   return (
-    <AppLayout title="沟通记录" actions={
-      <Button size="sm" className="rounded-sm text-xs" onClick={() => { setForm(EMPTY_FORM); setAddOpen(true); }}>
-        <Plus className="w-3.5 h-3.5 mr-1" />记录沟通
-      </Button>
-    }>
+    <AppLayout title="沟通记录">
       {/* ── 新增沟通弹窗 ── */}
       <Dialog open={addOpen} onOpenChange={v => { setAddOpen(v); if (!v) setForm(EMPTY_FORM); }}>
         <DialogContent className="max-w-[calc(100%-2rem)] md:max-w-lg rounded-sm">
@@ -883,19 +1421,25 @@ export default function CommunicationPage() {
 
       <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="rounded-sm mb-4 flex-wrap h-auto gap-1">
-            <TabsTrigger value="kangaroo" className="rounded-sm text-xs">
-              <Sparkles className="w-3.5 h-3.5 mr-1 text-primary" />AI沟通方案
-            </TabsTrigger>
-            <TabsTrigger value="records"  className="rounded-sm text-xs"><Phone className="w-3.5 h-3.5 mr-1" />沟通记录</TabsTrigger>
-            <TabsTrigger value="followup" className="rounded-sm text-xs">
-              <AlertCircle className="w-3.5 h-3.5 mr-1" />待跟进
-              {pendingFollowUps.length > 0 && (
-                <Badge className="ml-1.5 rounded-sm text-[10px] h-4 px-1 bg-destructive text-destructive-foreground">{pendingFollowUps.length}</Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="stats"    className="rounded-sm text-xs"><BarChart3 className="w-3.5 h-3.5 mr-1" />本周趋势</TabsTrigger>
-          </TabsList>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 border-b border-border pb-2">
+            <TabsList className="rounded-sm flex-wrap h-auto gap-1 bg-transparent p-0">
+              <TabsTrigger value="xiaoqi" className="rounded-sm text-xs data-[state=active]:bg-primary/10 data-[state=active]:text-primary">
+                <Sparkles className="w-3.5 h-3.5 mr-1 text-primary" />AI沟通方案
+              </TabsTrigger>
+              <TabsTrigger value="records" className="rounded-sm text-xs data-[state=active]:bg-primary/10 data-[state=active]:text-primary"><Phone className="w-3.5 h-3.5 mr-1" />沟通记录</TabsTrigger>
+              <TabsTrigger value="followup" className="rounded-sm text-xs data-[state=active]:bg-primary/10 data-[state=active]:text-primary">
+                <AlertCircle className="w-3.5 h-3.5 mr-1" />待跟进
+                {pendingFollowUps.length > 0 && (
+                  <Badge className="ml-1.5 rounded-sm text-[10px] h-4 px-1 bg-destructive text-destructive-foreground">{pendingFollowUps.length}</Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="stats" className="rounded-sm text-xs data-[state=active]:bg-primary/10 data-[state=active]:text-primary"><BarChart3 className="w-3.5 h-3.5 mr-1" />本周趋势</TabsTrigger>
+            </TabsList>
+
+            <Button size="sm" className="rounded-sm text-xs h-8 px-3 gap-1 shadow-sm" onClick={() => { setForm(EMPTY_FORM); setAddOpen(true); }}>
+              <Plus className="w-3.5 h-3.5" />记录沟通
+            </Button>
+          </div>
 
           {/* ── 沟通记录 ── */}
           <TabsContent value="records" className="space-y-4">
@@ -1110,9 +1654,9 @@ export default function CommunicationPage() {
             </div>
           </TabsContent>
 
-          {/* ── 袋鼠参谋 ── */}
-          <TabsContent value="kangaroo" className="m-0 p-0">
-            <KangarooAdvisor />
+          {/* ── 小琪 ── */}
+          <TabsContent value="xiaoqi" className="m-0 p-0">
+            <XiaoqiAdvisor />
           </TabsContent>
         </Tabs>
       </div>

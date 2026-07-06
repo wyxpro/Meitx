@@ -31,10 +31,10 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { icon: LayoutDashboard, label: '工作台',   path: '/dashboard' },
-  { icon: Phone,           label: '沟通记录', path: '/communications' },
-  { icon: BarChart3,       label: '数据统计', path: '/data-center' },
-  { icon: Settings,        label: '个人中心', path: '/settings' },
+  { icon: LayoutDashboard, label: '工作台', path: '/dashboard' },
+  { icon: Phone, label: '沟通记录', path: '/communications' },
+  { icon: BarChart3, label: '数据统计', path: '/data-center' },
+  { icon: Settings, label: '个人中心', path: '/settings' },
 ];
 
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
@@ -54,7 +54,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         <img src="/favicon.png" alt="美团阿波罗" className="w-9 h-9 object-contain mr-2.5 shrink-0" />
         <div>
           <h1 className="font-bold text-base leading-tight">美团阿波罗</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">商家智能运营</p>
+          <p className="text-xs text-muted-foreground mt-0.5">智慧运营AI平台</p>
         </div>
       </button>
 
@@ -69,11 +69,10 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                 key={item.path + item.label}
                 to={item.path}
                 onClick={onNavigate}
-                className={`flex items-center gap-3.5 px-4 py-3 rounded-lg text-base transition-all duration-200 ${
-                  active
+                className={`flex items-center gap-3.5 px-4 py-3 rounded-lg text-base transition-all duration-200 ${active
                     ? 'bg-primary/10 text-primary font-semibold'
                     : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                }`}
+                  }`}
               >
                 <item.icon className="w-5 h-5 shrink-0" />
                 <span className="flex-1">{item.label}</span>

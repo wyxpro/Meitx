@@ -177,7 +177,7 @@ export default function MerchantManagementPage() {
         <ExcelImportButton
           onImport={handleImport}
           className="inline-flex items-center gap-1.5 h-8 px-3 rounded-sm border border-border bg-background text-xs hover:bg-muted transition-colors"
-          label="导入"
+          label="Excel导入"
         />
         <Button variant="outline" size="sm" className="rounded-sm text-xs" onClick={handleExport}>
           <Download className="w-3.5 h-3.5 mr-1" />导出

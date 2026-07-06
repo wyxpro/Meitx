@@ -70,7 +70,7 @@ export default function LoginPage() {
         <div className="text-center mb-8">
           <img src="/favicon.png" alt="美团阿波罗" className="w-12 h-12 object-contain mx-auto mb-4" />
           <h1 className="text-2xl font-bold">美团阿波罗</h1>
-          <p className="text-muted-foreground text-sm mt-1">商家智能运营 AI 平台</p>
+          <p className="text-muted-foreground text-sm mt-1">智慧运营AI平台 AI 平台</p>
         </div>
 
         <Card className="rounded-2xl border-border/80 shadow-xl shadow-black/5 bg-card/90 backdrop-blur-md">

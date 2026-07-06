@@ -171,7 +171,7 @@ function NavBar() {
       <div className="w-full max-w-5xl mx-auto flex items-center justify-between px-6 md:px-8">
         <Link to="/" className="flex items-center gap-3">
           <img src="/favicon.png" alt="美团阿波罗" className="w-9 h-9 object-contain" />
-          <span className="font-extrabold text-lg md:text-xl tracking-tight text-foreground">美团阿波罗</span>
+          <span className="font-extrabold text-lg md:text-xl tracking-tight text-foreground">美团智慧运营平台</span>
         </Link>
         <nav className="hidden md:flex items-center gap-10 text-base font-medium text-muted-foreground">
           {[['功能', '#features'], ['数据', '#stats'], ['评价', '#testimonials'], ['定价', '#pricing']].map(([label, href]) => (
@@ -498,7 +498,7 @@ export default function LandingPage() {
                 <img src="/favicon.png" alt="美团阿波罗" className="w-7 h-7 object-contain" />
                 <span className="font-bold text-base">美团阿波罗</span>
               </div>
-              <p className="text-xs text-muted-foreground leading-relaxed max-w-xs">AI 驱动的商家智能运营 platform，让每次运营更精准、更高效。</p>
+              <p className="text-xs text-muted-foreground leading-relaxed max-w-xs">AI 驱动的智慧运营AI平台 platform，让每次运营更精准、更高效。</p>
             </div>
             <div className="flex flex-row justify-between w-full md:w-auto md:gap-16 text-center md:text-left">
               {[
@@ -518,7 +518,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="border-t border-border pt-8 text-center flex justify-center">
-            <p className="text-[10px] md:text-xs text-muted-foreground whitespace-nowrap overflow-x-auto max-w-full px-4 scrollbar-none">© 2026 美团阿波罗商家智能运营 AI 平台 · 保留所有权利</p>
+            <p className="text-[10px] md:text-xs text-muted-foreground whitespace-nowrap overflow-x-auto max-w-full px-4 scrollbar-none">© 2026 美团阿波罗智慧运营AI平台 AI 平台 · 保留所有权利</p>
           </div>
         </div>
       </footer>

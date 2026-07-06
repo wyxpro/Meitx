@@ -34,7 +34,7 @@ export function AIPluginPanel({ merchant, loading = false, isMobile = false, onC
           <img src="/favicon.png" alt="美团阿波罗" className="w-7 h-7 object-contain mr-1 shrink-0" />
           <div>
             <h2 className="font-semibold text-sm">AI 运营助手</h2>
-            <p className="text-[10px] text-muted-foreground">美团阿波罗商家智能运营插件</p>
+            <p className="text-[10px] text-muted-foreground">美团阿波罗智慧运营AI平台插件</p>
           </div>
         </div>
         {onClose && (
@@ -108,9 +108,8 @@ export function AIPluginPanel({ merchant, loading = false, isMobile = false, onC
 
   return (
     <div
-      className={`h-full shrink-0 bg-background border-l border-border overflow-hidden transition-all duration-300 ${
-        mounted ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4'
-      }`}
+      className={`h-full shrink-0 bg-background border-l border-border overflow-hidden transition-all duration-300 ${mounted ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4'
+        }`}
       style={{ width: isMobile ? '100%' : 420 }}
     >
       {panelContent}
